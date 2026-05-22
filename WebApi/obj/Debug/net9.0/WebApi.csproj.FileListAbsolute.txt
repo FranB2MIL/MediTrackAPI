@@ -147,3 +147,5 @@ C:\Users\franc\OneDrive\Documentos\MediTrackAPI\WebApi\obj\Debug\net9.0\refint\W
 C:\Users\franc\OneDrive\Documentos\MediTrackAPI\WebApi\obj\Debug\net9.0\WebApi.pdb
 C:\Users\franc\OneDrive\Documentos\MediTrackAPI\WebApi\obj\Debug\net9.0\WebApi.genruntimeconfig.cache
 C:\Users\franc\OneDrive\Documentos\MediTrackAPI\WebApi\obj\Debug\net9.0\ref\WebApi.dll
+C:\Users\franc\OneDrive\Documentos\MediTrackAPI\WebApi\bin\Debug\net9.0\Application.dll
+C:\Users\franc\OneDrive\Documentos\MediTrackAPI\WebApi\bin\Debug\net9.0\Application.pdb
