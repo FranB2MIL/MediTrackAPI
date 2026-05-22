@@ -1,15 +1,19 @@
+using Domain.Entities;
+using Domain.Interfaces;
 using Infrastructure.Persistance;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class MedicRepository
+    public class MedicRepository : BaseRepository<Medico>, IMedicRepository
     {
-        private readonly MediTrackDbContext _context;
-        public MedicRepository(MediTrackDbContext context)
+        public MedicRepository(MediTrackDbContext context) : base(context)
         {
-            _context = context;
         }
 
-        
+        public async Task<Medico?> GetByMailAsync(string email)
+        {
+            return await _dbSet.FirstOrDefaultAsync(m => m.Email == email);
+        }
     }
 }
