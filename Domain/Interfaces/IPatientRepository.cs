@@ -6,5 +6,6 @@ namespace Domain.Interfaces
     {
         Task<IEnumerable<Paciente>> GetByMedicIdAsync(int medicId);
         Task<Paciente?> GetByDniAsync(string dni);
+        Task AddMedicoPacienteAsync(MedicoPaciente medicoPaciente);
     }
 }

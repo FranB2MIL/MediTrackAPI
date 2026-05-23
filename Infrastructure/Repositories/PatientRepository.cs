@@ -22,5 +22,11 @@ namespace Infrastructure.Repositories
         {
             return await _dbSet.FirstOrDefaultAsync(p => p.DNI == dni);
         }
+
+        public async Task AddMedicoPacienteAsync(MedicoPaciente medicoPaciente)
+        {
+            await _context.MedicoPacientes.AddAsync(medicoPaciente);
+            await _context.SaveChangesAsync();
+        }
     }
 }

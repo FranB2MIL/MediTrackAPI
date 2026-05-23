@@ -1,3 +1,5 @@
+using Application.Interfaces;
+using Application.Services;
 using Domain.Interfaces;
 using Infrastructure.Persistance;
 using Infrastructure.Repositories;
@@ -12,6 +14,7 @@ builder.Services.AddDbContext<MediTrackDbContext>(options =>
 
 builder.Services.AddScoped<IMedicRepository, MedicRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+builder.Services.AddScoped<IPatientService, PatientService>();
 
 var app = builder.Build();
 
