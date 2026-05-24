@@ -1,4 +1,4 @@
-using Application.DTOs.Paciente;
+using Application.DTOs.Patient;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Interfaces;
@@ -13,9 +13,9 @@ public class PatientService : IPatientService
         _patientRepository = patientRepository;
     }
 
-    public async Task<IEnumerable<PatientDto>> GetAllAsync(int medicoId)
+    public async Task<IEnumerable<PatientDto>> GetAllAsync(int doctorId)
     {
-        var patients = await _patientRepository.GetByMedicIdAsync(medicoId);
+        var patients = await _patientRepository.GetByDoctorIdAsync(doctorId);
         return patients.Select(p => new PatientDto
         {
             Id = p.Id,
@@ -43,9 +43,9 @@ public class PatientService : IPatientService
         };
     }
 
-    public async Task AddAsync(CreatePatientDto dto, int medicoId)
+    public async Task AddAsync(CreatePatientDto dto, int doctorId)
     {
-        var patient = new Paciente
+        var patient = new Patient
         {
             Nombre = dto.Nombre,
             Apellido = dto.Apellido,
@@ -55,12 +55,12 @@ public class PatientService : IPatientService
         };
         await _patientRepository.AddAsync(patient);
 
-        var medicoPaciente = new MedicoPaciente
+        var doctorPatient = new DoctorPatient
         {
-            MedicoId = medicoId,
-            PacienteId = patient.Id
+            DoctorId = doctorId,
+            PatientId = patient.Id
         };
-        await _patientRepository.AddMedicoPacienteAsync(medicoPaciente);
+        await _patientRepository.AddDoctorPatientAsync(doctorPatient);
     }
 
     public async Task UpdateAsync(int id, UpdatePatientDto dto)

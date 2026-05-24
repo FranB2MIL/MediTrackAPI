@@ -1,6 +1,6 @@
 namespace Domain.Entities
 {
-    public class Disponibilidad
+    public class Availability
     {
         public int Id { get; set; }
         public DayOfWeek DiaSemana { get; set; }
@@ -8,9 +8,9 @@ namespace Domain.Entities
         public TimeOnly HoraFin { get; set; }
         public int DuracionTurno { get; set; }
 
-        public int MedicoId { get; set; }
-        public Medico Medico { get; set; } = null!;
+        public int DoctorId { get; set; }
+        public Doctor Doctor { get; set; } = null!;
 
-        public ICollection<Turno> Turnos { get; set; } = new List<Turno>();
+        public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     }
 }

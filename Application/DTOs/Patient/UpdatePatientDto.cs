@@ -1,4 +1,4 @@
-namespace Application.DTOs.Paciente
+namespace Application.DTOs.Patient
 {
     public class UpdatePatientDto
     {
