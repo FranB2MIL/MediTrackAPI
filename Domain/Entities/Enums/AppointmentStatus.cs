@@ -1,6 +1,6 @@
 namespace Domain.Entities.Enums
 {
-    public enum EstadoTurno
+    public enum AppointmentStatus
     {
         Disponible,
         Reservado,

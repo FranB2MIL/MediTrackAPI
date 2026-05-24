@@ -1,6 +1,6 @@
 namespace Domain.Entities
 {
-    public class Medico
+    public class Doctor
     {
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
@@ -8,7 +8,7 @@ namespace Domain.Entities
         public string Email { get; set; } = string.Empty;
         public string Contraseña { get; set; } = string.Empty;
 
-        public ICollection<MedicoPaciente> MedicoPacientes { get; set; } = new List<MedicoPaciente>();
-        public ICollection<Turno> Turnos { get; set; } = new List<Turno>();
+        public ICollection<DoctorPatient> DoctorPatients { get; set; } = new List<DoctorPatient>();
+        public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     }
 }

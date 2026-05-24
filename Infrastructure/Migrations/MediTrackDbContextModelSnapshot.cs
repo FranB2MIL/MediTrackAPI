@@ -17,7 +17,70 @@ namespace Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
 
-            modelBuilder.Entity("Domain.Entities.Consulta", b =>
+            modelBuilder.Entity("Domain.Entities.Appointment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AvailabilityId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DoctorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeOnly>("HoraInicio")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PatientId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AvailabilityId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Appointments");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Availability", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DiaSemana")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DoctorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DuracionTurno")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<TimeOnly>("HoraFin")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeOnly>("HoraInicio")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorId");
+
+                    b.ToTable("Availabilities");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Consultation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -34,98 +97,17 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("PacienteId")
+                    b.Property<int>("PatientId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PacienteId");
+                    b.HasIndex("PatientId");
 
-                    b.ToTable("Consultas");
+                    b.ToTable("Consultations");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Disponibilidad", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("DiaSemana")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("DuracionTurno")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<TimeOnly>("HoraFin")
-                        .HasColumnType("TEXT");
-
-                    b.Property<TimeOnly>("HoraInicio")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("MedicoId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MedicoId");
-
-                    b.ToTable("Disponibilidades");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Estudio", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ArchivoUrl")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("PacienteId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PacienteId");
-
-                    b.ToTable("Estudios");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Medicion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Altura")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("ConsultaId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("IMC")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Peso")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Talla")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConsultaId")
-                        .IsUnique();
-
-                    b.ToTable("Mediciones");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Medico", b =>
+            modelBuilder.Entity("Domain.Entities.Doctor", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -149,25 +131,54 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Medicos");
+                    b.ToTable("Doctors");
                 });
 
-            modelBuilder.Entity("Domain.Entities.MedicoPaciente", b =>
+            modelBuilder.Entity("Domain.Entities.DoctorPatient", b =>
                 {
-                    b.Property<int>("MedicoId")
+                    b.Property<int>("DoctorId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("PacienteId")
+                    b.Property<int>("PatientId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("MedicoId", "PacienteId");
+                    b.HasKey("DoctorId", "PatientId");
 
-                    b.HasIndex("PacienteId");
+                    b.HasIndex("PatientId");
 
-                    b.ToTable("MedicoPacientes");
+                    b.ToTable("DoctorPatients");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Paciente", b =>
+            modelBuilder.Entity("Domain.Entities.Measurement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Altura")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ConsultationId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("IMC")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Peso")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Talla")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsultationId")
+                        .IsUnique();
+
+                    b.ToTable("Measurements");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Patient", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -210,158 +221,147 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Pacientes");
+                    b.ToTable("Patients");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Turno", b =>
+            modelBuilder.Entity("Domain.Entities.Study", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DisponibilidadId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Estado")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("Fecha")
+                    b.Property<string>("ArchivoUrl")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<TimeOnly>("HoraInicio")
+                    b.Property<int>("PatientId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("MedicoId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("PacienteId")
-                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DisponibilidadId");
+                    b.HasIndex("PatientId");
 
-                    b.HasIndex("MedicoId");
-
-                    b.HasIndex("PacienteId");
-
-                    b.ToTable("Turnos");
+                    b.ToTable("Studies");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Consulta", b =>
+            modelBuilder.Entity("Domain.Entities.Appointment", b =>
                 {
-                    b.HasOne("Domain.Entities.Paciente", "Paciente")
-                        .WithMany("Consultas")
-                        .HasForeignKey("PacienteId")
+                    b.HasOne("Domain.Entities.Availability", "Availability")
+                        .WithMany("Appointments")
+                        .HasForeignKey("AvailabilityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Paciente");
+                    b.HasOne("Domain.Entities.Doctor", "Doctor")
+                        .WithMany("Appointments")
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Patient", "Patient")
+                        .WithMany("Appointments")
+                        .HasForeignKey("PatientId");
+
+                    b.Navigation("Availability");
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Disponibilidad", b =>
+            modelBuilder.Entity("Domain.Entities.Availability", b =>
                 {
-                    b.HasOne("Domain.Entities.Medico", "Medico")
+                    b.HasOne("Domain.Entities.Doctor", "Doctor")
                         .WithMany()
-                        .HasForeignKey("MedicoId")
+                        .HasForeignKey("DoctorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Medico");
+                    b.Navigation("Doctor");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Estudio", b =>
+            modelBuilder.Entity("Domain.Entities.Consultation", b =>
                 {
-                    b.HasOne("Domain.Entities.Paciente", "Paciente")
-                        .WithMany("Estudios")
-                        .HasForeignKey("PacienteId")
+                    b.HasOne("Domain.Entities.Patient", "Patient")
+                        .WithMany("Consultations")
+                        .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Paciente");
+                    b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Medicion", b =>
+            modelBuilder.Entity("Domain.Entities.DoctorPatient", b =>
                 {
-                    b.HasOne("Domain.Entities.Consulta", "Consulta")
-                        .WithOne("Medicion")
-                        .HasForeignKey("Domain.Entities.Medicion", "ConsultaId")
+                    b.HasOne("Domain.Entities.Doctor", "Doctor")
+                        .WithMany("DoctorPatients")
+                        .HasForeignKey("DoctorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Consulta");
-                });
-
-            modelBuilder.Entity("Domain.Entities.MedicoPaciente", b =>
-                {
-                    b.HasOne("Domain.Entities.Medico", "Medico")
-                        .WithMany("MedicoPacientes")
-                        .HasForeignKey("MedicoId")
+                    b.HasOne("Domain.Entities.Patient", "Patient")
+                        .WithMany("DoctorPatients")
+                        .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.Paciente", "Paciente")
-                        .WithMany("MedicoPacientes")
-                        .HasForeignKey("PacienteId")
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Measurement", b =>
+                {
+                    b.HasOne("Domain.Entities.Consultation", "Consultation")
+                        .WithOne("Measurement")
+                        .HasForeignKey("Domain.Entities.Measurement", "ConsultationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Medico");
-
-                    b.Navigation("Paciente");
+                    b.Navigation("Consultation");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Turno", b =>
+            modelBuilder.Entity("Domain.Entities.Study", b =>
                 {
-                    b.HasOne("Domain.Entities.Disponibilidad", "Disponibilidad")
-                        .WithMany("Turnos")
-                        .HasForeignKey("DisponibilidadId")
+                    b.HasOne("Domain.Entities.Patient", "Patient")
+                        .WithMany("Studies")
+                        .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.Medico", "Medico")
-                        .WithMany("Turnos")
-                        .HasForeignKey("MedicoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Paciente", "Paciente")
-                        .WithMany("Turnos")
-                        .HasForeignKey("PacienteId");
-
-                    b.Navigation("Disponibilidad");
-
-                    b.Navigation("Medico");
-
-                    b.Navigation("Paciente");
+                    b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Consulta", b =>
+            modelBuilder.Entity("Domain.Entities.Availability", b =>
                 {
-                    b.Navigation("Medicion");
+                    b.Navigation("Appointments");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Disponibilidad", b =>
+            modelBuilder.Entity("Domain.Entities.Consultation", b =>
                 {
-                    b.Navigation("Turnos");
+                    b.Navigation("Measurement");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Medico", b =>
+            modelBuilder.Entity("Domain.Entities.Doctor", b =>
                 {
-                    b.Navigation("MedicoPacientes");
+                    b.Navigation("Appointments");
 
-                    b.Navigation("Turnos");
+                    b.Navigation("DoctorPatients");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Paciente", b =>
+            modelBuilder.Entity("Domain.Entities.Patient", b =>
                 {
-                    b.Navigation("Consultas");
+                    b.Navigation("Appointments");
 
-                    b.Navigation("Estudios");
+                    b.Navigation("Consultations");
 
-                    b.Navigation("MedicoPacientes");
+                    b.Navigation("DoctorPatients");
 
-                    b.Navigation("Turnos");
+                    b.Navigation("Studies");
                 });
 #pragma warning restore 612, 618
         }

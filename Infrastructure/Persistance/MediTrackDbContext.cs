@@ -7,18 +7,18 @@ public class MediTrackDbContext : DbContext
 {
     public MediTrackDbContext(DbContextOptions<MediTrackDbContext> options) : base(options) { }
 
-    public DbSet<Medico> Medicos { get; set; }
-    public DbSet<Paciente> Pacientes { get; set; }
-    public DbSet<MedicoPaciente> MedicoPacientes { get; set; }
-    public DbSet<Consulta> Consultas { get; set; }
-    public DbSet<Medicion> Mediciones { get; set; }
-    public DbSet<Estudio> Estudios { get; set; }
-    public DbSet<Disponibilidad> Disponibilidades { get; set; }
-    public DbSet<Turno> Turnos { get; set; }
+    public DbSet<Doctor> Doctors { get; set; }
+    public DbSet<Patient> Patients { get; set; }
+    public DbSet<DoctorPatient> DoctorPatients { get; set; }
+    public DbSet<Consultation> Consultations { get; set; }
+    public DbSet<Measurement> Measurements { get; set; }
+    public DbSet<Study> Studies { get; set; }
+    public DbSet<Availability> Availabilities { get; set; }
+    public DbSet<Appointment> Appointments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<MedicoPaciente>()
-            .HasKey(mp => new { mp.MedicoId, mp.PacienteId });
+        modelBuilder.Entity<DoctorPatient>()
+            .HasKey(dp => new { dp.DoctorId, dp.PatientId });
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -12,7 +12,7 @@ namespace Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Medicos",
+                name: "Doctors",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -24,11 +24,11 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Medicos", x => x.Id);
+                    table.PrimaryKey("PK_Doctors", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Pacientes",
+                name: "Patients",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -45,11 +45,11 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Pacientes", x => x.Id);
+                    table.PrimaryKey("PK_Patients", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Disponibilidades",
+                name: "Availabilities",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -58,21 +58,21 @@ namespace Infrastructure.Migrations
                     HoraInicio = table.Column<TimeOnly>(type: "TEXT", nullable: false),
                     HoraFin = table.Column<TimeOnly>(type: "TEXT", nullable: false),
                     DuracionTurno = table.Column<int>(type: "INTEGER", nullable: false),
-                    MedicoId = table.Column<int>(type: "INTEGER", nullable: false)
+                    DoctorId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Disponibilidades", x => x.Id);
+                    table.PrimaryKey("PK_Availabilities", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Disponibilidades_Medicos_MedicoId",
-                        column: x => x.MedicoId,
-                        principalTable: "Medicos",
+                        name: "FK_Availabilities_Doctors_DoctorId",
+                        column: x => x.DoctorId,
+                        principalTable: "Doctors",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Consultas",
+                name: "Consultations",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -80,66 +80,66 @@ namespace Infrastructure.Migrations
                     Fecha = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Motivo = table.Column<string>(type: "TEXT", nullable: false),
                     Descripcion = table.Column<string>(type: "TEXT", nullable: false),
-                    PacienteId = table.Column<int>(type: "INTEGER", nullable: false)
+                    PatientId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Consultas", x => x.Id);
+                    table.PrimaryKey("PK_Consultations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Consultas_Pacientes_PacienteId",
-                        column: x => x.PacienteId,
-                        principalTable: "Pacientes",
+                        name: "FK_Consultations_Patients_PatientId",
+                        column: x => x.PatientId,
+                        principalTable: "Patients",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Estudios",
+                name: "Studies",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Tipo = table.Column<string>(type: "TEXT", nullable: false),
                     ArchivoUrl = table.Column<string>(type: "TEXT", nullable: false),
-                    PacienteId = table.Column<int>(type: "INTEGER", nullable: false)
+                    PatientId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Estudios", x => x.Id);
+                    table.PrimaryKey("PK_Studies", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Estudios_Pacientes_PacienteId",
-                        column: x => x.PacienteId,
-                        principalTable: "Pacientes",
+                        name: "FK_Studies_Patients_PatientId",
+                        column: x => x.PatientId,
+                        principalTable: "Patients",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "MedicoPacientes",
+                name: "DoctorPatients",
                 columns: table => new
                 {
-                    MedicoId = table.Column<int>(type: "INTEGER", nullable: false),
-                    PacienteId = table.Column<int>(type: "INTEGER", nullable: false)
+                    DoctorId = table.Column<int>(type: "INTEGER", nullable: false),
+                    PatientId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MedicoPacientes", x => new { x.MedicoId, x.PacienteId });
+                    table.PrimaryKey("PK_DoctorPatients", x => new { x.DoctorId, x.PatientId });
                     table.ForeignKey(
-                        name: "FK_MedicoPacientes_Medicos_MedicoId",
-                        column: x => x.MedicoId,
-                        principalTable: "Medicos",
+                        name: "FK_DoctorPatients_Doctors_DoctorId",
+                        column: x => x.DoctorId,
+                        principalTable: "Doctors",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_MedicoPacientes_Pacientes_PacienteId",
-                        column: x => x.PacienteId,
-                        principalTable: "Pacientes",
+                        name: "FK_DoctorPatients_Patients_PatientId",
+                        column: x => x.PatientId,
+                        principalTable: "Patients",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Turnos",
+                name: "Appointments",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -147,34 +147,34 @@ namespace Infrastructure.Migrations
                     Fecha = table.Column<DateTime>(type: "TEXT", nullable: false),
                     HoraInicio = table.Column<TimeOnly>(type: "TEXT", nullable: false),
                     Estado = table.Column<int>(type: "INTEGER", nullable: false),
-                    DisponibilidadId = table.Column<int>(type: "INTEGER", nullable: false),
-                    MedicoId = table.Column<int>(type: "INTEGER", nullable: false),
-                    PacienteId = table.Column<int>(type: "INTEGER", nullable: true)
+                    AvailabilityId = table.Column<int>(type: "INTEGER", nullable: false),
+                    DoctorId = table.Column<int>(type: "INTEGER", nullable: false),
+                    PatientId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Turnos", x => x.Id);
+                    table.PrimaryKey("PK_Appointments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Turnos_Disponibilidades_DisponibilidadId",
-                        column: x => x.DisponibilidadId,
-                        principalTable: "Disponibilidades",
+                        name: "FK_Appointments_Availabilities_AvailabilityId",
+                        column: x => x.AvailabilityId,
+                        principalTable: "Availabilities",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Turnos_Medicos_MedicoId",
-                        column: x => x.MedicoId,
-                        principalTable: "Medicos",
+                        name: "FK_Appointments_Doctors_DoctorId",
+                        column: x => x.DoctorId,
+                        principalTable: "Doctors",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Turnos_Pacientes_PacienteId",
-                        column: x => x.PacienteId,
-                        principalTable: "Pacientes",
+                        name: "FK_Appointments_Patients_PatientId",
+                        column: x => x.PatientId,
+                        principalTable: "Patients",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "Mediciones",
+                name: "Measurements",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -183,87 +183,87 @@ namespace Infrastructure.Migrations
                     Altura = table.Column<decimal>(type: "TEXT", nullable: false),
                     Talla = table.Column<decimal>(type: "TEXT", nullable: false),
                     IMC = table.Column<decimal>(type: "TEXT", nullable: false),
-                    ConsultaId = table.Column<int>(type: "INTEGER", nullable: false)
+                    ConsultationId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Mediciones", x => x.Id);
+                    table.PrimaryKey("PK_Measurements", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Mediciones_Consultas_ConsultaId",
-                        column: x => x.ConsultaId,
-                        principalTable: "Consultas",
+                        name: "FK_Measurements_Consultations_ConsultationId",
+                        column: x => x.ConsultationId,
+                        principalTable: "Consultations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Consultas_PacienteId",
-                table: "Consultas",
-                column: "PacienteId");
+                name: "IX_Consultations_PatientId",
+                table: "Consultations",
+                column: "PatientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Disponibilidades_MedicoId",
-                table: "Disponibilidades",
-                column: "MedicoId");
+                name: "IX_Availabilities_DoctorId",
+                table: "Availabilities",
+                column: "DoctorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Estudios_PacienteId",
-                table: "Estudios",
-                column: "PacienteId");
+                name: "IX_Studies_PatientId",
+                table: "Studies",
+                column: "PatientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Mediciones_ConsultaId",
-                table: "Mediciones",
-                column: "ConsultaId",
+                name: "IX_Measurements_ConsultationId",
+                table: "Measurements",
+                column: "ConsultationId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_MedicoPacientes_PacienteId",
-                table: "MedicoPacientes",
-                column: "PacienteId");
+                name: "IX_DoctorPatients_PatientId",
+                table: "DoctorPatients",
+                column: "PatientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Turnos_DisponibilidadId",
-                table: "Turnos",
-                column: "DisponibilidadId");
+                name: "IX_Appointments_AvailabilityId",
+                table: "Appointments",
+                column: "AvailabilityId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Turnos_MedicoId",
-                table: "Turnos",
-                column: "MedicoId");
+                name: "IX_Appointments_DoctorId",
+                table: "Appointments",
+                column: "DoctorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Turnos_PacienteId",
-                table: "Turnos",
-                column: "PacienteId");
+                name: "IX_Appointments_PatientId",
+                table: "Appointments",
+                column: "PatientId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Estudios");
+                name: "Studies");
 
             migrationBuilder.DropTable(
-                name: "Mediciones");
+                name: "Measurements");
 
             migrationBuilder.DropTable(
-                name: "MedicoPacientes");
+                name: "DoctorPatients");
 
             migrationBuilder.DropTable(
-                name: "Turnos");
+                name: "Appointments");
 
             migrationBuilder.DropTable(
-                name: "Consultas");
+                name: "Consultations");
 
             migrationBuilder.DropTable(
-                name: "Disponibilidades");
+                name: "Availabilities");
 
             migrationBuilder.DropTable(
-                name: "Pacientes");
+                name: "Patients");
 
             migrationBuilder.DropTable(
-                name: "Medicos");
+                name: "Doctors");
         }
     }
 }

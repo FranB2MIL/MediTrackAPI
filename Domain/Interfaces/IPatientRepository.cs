@@ -2,10 +2,10 @@ using Domain.Entities;
 
 namespace Domain.Interfaces
 {
-    public interface IPatientRepository : IRepository<Paciente>
+    public interface IPatientRepository : IRepository<Patient>
     {
-        Task<IEnumerable<Paciente>> GetByMedicIdAsync(int medicId);
-        Task<Paciente?> GetByDniAsync(string dni);
-        Task AddMedicoPacienteAsync(MedicoPaciente medicoPaciente);
+        Task<IEnumerable<Patient>> GetByDoctorIdAsync(int doctorId);
+        Task<Patient?> GetByDniAsync(string dni);
+        Task AddDoctorPatientAsync(DoctorPatient doctorPatient);
     }
 }

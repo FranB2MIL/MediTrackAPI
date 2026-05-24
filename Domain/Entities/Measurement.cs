@@ -1,6 +1,6 @@
 namespace Domain.Entities
 {
-    public class Medicion
+    public class Measurement
     {
         public int Id { get; set; }
         public decimal Peso { get; set; }
@@ -8,7 +8,7 @@ namespace Domain.Entities
         public decimal Talla { get; set; }
         public decimal IMC { get; set; }
 
-        public int ConsultaId { get; set; }
-        public Consulta Consulta { get; set; } = null!;
+        public int ConsultationId { get; set; }
+        public Consultation Consultation { get; set; } = null!;
     }
 }
