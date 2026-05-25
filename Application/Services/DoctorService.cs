@@ -8,9 +8,11 @@ namespace Application.Services;
 public class DoctorService : IDoctorService
 {
     private readonly IDoctorRepository _doctorRepository;
-    public DoctorService(IDoctorRepository doctorRepository)
+    private readonly IPasswordHasher _passwordHasher;
+    public DoctorService(IDoctorRepository doctorRepository, IPasswordHasher passwordHasher)
     {
         _doctorRepository = doctorRepository;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<IEnumerable<DoctorDto>> GetAllAsync()
@@ -46,7 +48,7 @@ public class DoctorService : IDoctorService
             FirstName = createDoctorDto.FirstName,
             LastName = createDoctorDto.LastName,
             Email = createDoctorDto.Email,
-            Password = createDoctorDto.Password
+            Password = _passwordHasher.Hash(createDoctorDto.Password)
         };
         await _doctorRepository.AddAsync(doctor);
     }
