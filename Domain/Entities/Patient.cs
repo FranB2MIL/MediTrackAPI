@@ -3,15 +3,15 @@ namespace Domain.Entities
     public class Patient
     {
         public int Id { get; set; }
-        public string Nombre { get; set; } = string.Empty;
-        public string Apellido { get; set; } = string.Empty;
-        public DateTime FechaDeNacimiento { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public DateTime DateOfBirth { get; set; }
         public string DNI { get; set; } = string.Empty;
-        public string ObraSocial { get; set; } = string.Empty;
-        public string NumeroAfiliado { get; set; } = string.Empty;
+        public string HealthInsurance { get; set; } = string.Empty;
+        public string InsuranceNumber { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string Contraseña { get; set; } = string.Empty;
-        public string NumeroDeTelefono { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
 
         public ICollection<Consultation> Consultations { get; set; } = new List<Consultation>();
         public ICollection<Study> Studies { get; set; } = new List<Study>();

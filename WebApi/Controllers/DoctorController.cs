@@ -1,9 +1,11 @@
 using Application.DTOs.Doctor;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class DoctorController : ControllerBase
@@ -28,6 +30,7 @@ namespace WebApi.Controllers
             return Ok(doctor);
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult<DoctorDto>> Create([FromBody] CreateDoctorDto dto)
         {

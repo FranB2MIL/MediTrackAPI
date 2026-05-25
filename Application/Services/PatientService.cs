@@ -19,11 +19,11 @@ public class PatientService : IPatientService
         return patients.Select(p => new PatientDto
         {
             Id = p.Id,
-            Nombre = p.Nombre,
-            Apellido = p.Apellido,
-            FechaNacimiento = p.FechaDeNacimiento,
+            FirstName = p.FirstName,
+            LastName = p.LastName,
+            DateOfBirth = p.DateOfBirth,
             DNI = p.DNI,
-            ObraSocial = p.ObraSocial
+            HealthInsurance = p.HealthInsurance
         });
     }
 
@@ -35,11 +35,11 @@ public class PatientService : IPatientService
         return new PatientDto
         {
             Id = patient.Id,
-            Nombre = patient.Nombre,
-            Apellido = patient.Apellido,
-            FechaNacimiento = patient.FechaDeNacimiento,
+            FirstName = patient.FirstName,
+            LastName = patient.LastName,
+            DateOfBirth = patient.DateOfBirth,
             DNI = patient.DNI,
-            ObraSocial = patient.ObraSocial
+            HealthInsurance = patient.HealthInsurance
         };
     }
 
@@ -47,11 +47,11 @@ public class PatientService : IPatientService
     {
         var patient = new Patient
         {
-            Nombre = dto.Nombre,
-            Apellido = dto.Apellido,
-            FechaDeNacimiento = dto.FechaNacimiento,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            DateOfBirth = dto.DateOfBirth,
             DNI = dto.DNI,
-            ObraSocial = dto.ObraSocial
+            HealthInsurance = dto.HealthInsurance
         };
         await _patientRepository.AddAsync(patient);
 
@@ -68,11 +68,11 @@ public class PatientService : IPatientService
         var patient = await _patientRepository.GetByIdAsync(id);
         if (patient == null) return;
 
-        patient.Nombre = dto.Nombre;
-        patient.Apellido = dto.Apellido;
-        patient.FechaDeNacimiento = dto.FechaNacimiento;
+        patient.FirstName = dto.FirstName;
+        patient.LastName = dto.LastName;
+        patient.DateOfBirth = dto.DateOfBirth;
         patient.DNI = dto.DNI;
-        patient.ObraSocial = dto.ObraSocial;
+        patient.HealthInsurance = dto.HealthInsurance;
 
         await _patientRepository.UpdateAsync(patient);
     }
