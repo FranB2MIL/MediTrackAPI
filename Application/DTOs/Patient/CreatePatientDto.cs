@@ -2,10 +2,10 @@ namespace Application.DTOs.Patient
 {
     public class CreatePatientDto
     {
-        public string Nombre { get; set; } = string.Empty;
-        public string Apellido { get; set; } = string.Empty;
-        public DateTime FechaNacimiento { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public DateTime DateOfBirth { get; set; }
         public string DNI { get; set; } = string.Empty;
-        public string ObraSocial { get; set; } = string.Empty;
+        public string HealthInsurance { get; set; } = string.Empty;
     }
 }

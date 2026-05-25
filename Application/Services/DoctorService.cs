@@ -19,11 +19,12 @@ public class DoctorService : IDoctorService
         return doctors.Select(d => new DoctorDto
         {
             Id = d.Id,
-            Nombre = d.Nombre,
-            Apellido = d.Apellido,
+            FirstName = d.FirstName,
+            LastName = d.LastName,
             Email = d.Email
         });
     }
+
     public async Task<DoctorDto?> GetByIdAsync(int id)
     {
         var doctor = await _doctorRepository.GetByIdAsync(id);
@@ -32,8 +33,8 @@ public class DoctorService : IDoctorService
         return new DoctorDto
         {
             Id = doctor.Id,
-            Nombre = doctor.Nombre,
-            Apellido = doctor.Apellido,
+            FirstName = doctor.FirstName,
+            LastName = doctor.LastName,
             Email = doctor.Email
         };
     }
@@ -42,10 +43,10 @@ public class DoctorService : IDoctorService
     {
         var doctor = new Doctor
         {
-            Nombre = createDoctorDto.Nombre,
-            Apellido = createDoctorDto.Apellido,
+            FirstName = createDoctorDto.FirstName,
+            LastName = createDoctorDto.LastName,
             Email = createDoctorDto.Email,
-            Contraseña = createDoctorDto.Contraseña
+            Password = createDoctorDto.Password
         };
         await _doctorRepository.AddAsync(doctor);
     }
@@ -53,10 +54,10 @@ public class DoctorService : IDoctorService
     public async Task UpdateAsync(int id, UpdateDoctorDto updateDoctorDto)
     {
         var doctor = await _doctorRepository.GetByIdAsync(id);
-        if (doctor == null) throw new Exception("Doctor no encontrado");
+        if (doctor == null) throw new Exception("Doctor not found");
 
-        doctor.Nombre = updateDoctorDto.Nombre;
-        doctor.Apellido = updateDoctorDto.Apellido;
+        doctor.FirstName = updateDoctorDto.FirstName;
+        doctor.LastName = updateDoctorDto.LastName;
         doctor.Email = updateDoctorDto.Email;
 
         await _doctorRepository.UpdateAsync(doctor);

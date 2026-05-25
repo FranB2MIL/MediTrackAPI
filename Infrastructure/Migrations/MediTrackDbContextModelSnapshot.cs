@@ -26,19 +26,19 @@ namespace Infrastructure.Migrations
                     b.Property<int>("AvailabilityId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("DoctorId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Estado")
+                    b.Property<int?>("PatientId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("Fecha")
+                    b.Property<TimeOnly>("StartTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<TimeOnly>("HoraInicio")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("PatientId")
+                    b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -58,19 +58,19 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DiaSemana")
+                    b.Property<int>("AppointmentDuration")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DayOfWeek")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("DoctorId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DuracionTurno")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<TimeOnly>("HoraFin")
+                    b.Property<TimeOnly>("EndTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<TimeOnly>("HoraInicio")
+                    b.Property<TimeOnly>("StartTime")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -86,19 +86,19 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
+                    b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Motivo")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("PatientId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -113,19 +113,19 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Apellido")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Contraseña")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Nombre")
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -155,19 +155,19 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Altura")
-                        .HasColumnType("TEXT");
-
                     b.Property<int>("ConsultationId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Height")
+                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("IMC")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("Peso")
+                    b.Property<decimal>("Size")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("Talla")
+                    b.Property<decimal>("Weight")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -184,38 +184,38 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Apellido")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Contraseña")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("DNI")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("FechaDeNacimiento")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Nombre")
+                    b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("NumeroAfiliado")
+                    b.Property<string>("HealthInsurance")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("NumeroDeTelefono")
+                    b.Property<string>("InsuranceNumber")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ObraSocial")
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

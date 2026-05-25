@@ -5,9 +5,9 @@ namespace Domain.Entities
     public class Appointment
     {
         public int Id { get; set; }
-        public DateTime Fecha { get; set; }
-        public TimeOnly HoraInicio { get; set; }
-        public AppointmentStatus Estado { get; set; }
+        public DateTime Date { get; set; }
+        public TimeOnly StartTime { get; set; }
+        public AppointmentStatus Status { get; set; }
 
         public int AvailabilityId { get; set; }
         public Availability Availability { get; set; } = null!;
