@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(MediTrackDbContext))]
-    partial class MediTrackDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260526145627_FixMeasurementColumnTypes")]
+    partial class FixMeasurementColumnTypes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
@@ -158,16 +161,16 @@ namespace Infrastructure.Migrations
                     b.Property<int>("ConsultationId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<double>("Height")
+                    b.Property<decimal>("Height")
                         .HasColumnType("REAL");
 
-                    b.Property<double>("IMC")
+                    b.Property<decimal>("IMC")
                         .HasColumnType("REAL");
 
-                    b.Property<double>("Size")
+                    b.Property<decimal>("Size")
                         .HasColumnType("REAL");
 
-                    b.Property<double>("Weight")
+                    b.Property<decimal>("Weight")
                         .HasColumnType("REAL");
 
                     b.HasKey("Id");

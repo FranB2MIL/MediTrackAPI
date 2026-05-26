@@ -20,5 +20,18 @@ public class MediTrackDbContext : DbContext
     {
         modelBuilder.Entity<DoctorPatient>()
             .HasKey(dp => new { dp.DoctorId, dp.PatientId });
+
+        modelBuilder.Entity<Consultation>()
+            .HasOne(c => c.Measurement)
+            .WithOne(m => m.Consultation)
+            .HasForeignKey<Measurement>(m => m.ConsultationId);
+
+        modelBuilder.Entity<Measurement>(entity =>
+        {
+            entity.Property(m => m.Weight).HasColumnType("REAL");
+            entity.Property(m => m.Height).HasColumnType("REAL");
+            entity.Property(m => m.Size).HasColumnType("REAL");
+            entity.Property(m => m.IMC).HasColumnType("REAL");
+        });
     }
 }

@@ -3,10 +3,10 @@ namespace Domain.Entities
     public class Measurement
     {
         public int Id { get; set; }
-        public decimal Weight { get; set; }
-        public decimal Height { get; set; }
-        public decimal Size { get; set; }
-        public decimal IMC { get; set; }
+        public double Weight { get; set; }
+        public double Height { get; set; }
+        public double Size { get; set; }
+        public double IMC { get; set; }
 
         public int ConsultationId { get; set; }
         public Consultation Consultation { get; set; } = null!;
