@@ -1,4 +1,5 @@
 using Application.DTOs.Auth;
+using Application.DTOs.Doctor;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,6 +21,13 @@ public class AuthController : ControllerBase
     {
         var result = await _authService.LoginAsync(dto);
         if (result == null) return Unauthorized(new { message = "Credenciales inválidas" });
+        return Ok(result);
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] CreateDoctorDto dto)
+    {
+        var result = await _authService.RegisterAsync(dto);
         return Ok(result);
     }
 }

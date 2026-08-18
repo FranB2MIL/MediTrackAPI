@@ -30,7 +30,7 @@ namespace WebApi.Controllers
             return Ok(doctor);
         }
 
-        [AllowAnonymous]
+        
         [HttpPost]
         public async Task<ActionResult<DoctorDto>> Create([FromBody] CreateDoctorDto dto)
         {
