@@ -27,6 +27,12 @@ public class ConsultationService : IConsultationService
         });
     }
 
+    private static double CalculateImc(double weight, double height)
+    {
+        if (height <= 0) throw new ArgumentException("Height must be greater than zero.");
+        return Math.Round(weight / (height * height), 2);
+    }
+
     public async Task<ConsultationDto?> GetByIdAsync(int id)
     {
         var consultation = await _consultationRepository.GetByIdWithMeasurementAsync(id);
@@ -63,7 +69,7 @@ public class ConsultationService : IConsultationService
         {
             double weight = dto.Measurement.Weight;
             double height = dto.Measurement.Height;
-            double imc = Math.Round(weight / (height * height), 2);
+            double imc = CalculateImc(weight, height);
 
             
 
@@ -76,5 +82,47 @@ public class ConsultationService : IConsultationService
             };
         }
         await _consultationRepository.AddAsync(consultation);
+    }
+
+    public async Task UpdateAsync(int id, UpdateConsultationDto dto)
+    {
+        var consultation = await _consultationRepository.GetByIdAsync(id);
+        if (consultation == null) throw new InvalidOperationException("Consultation not found");
+
+        consultation.Date = dto.Date;
+        consultation.Reason = dto.Reason;
+        consultation.Description = dto.Description;
+        consultation.PatientId = dto.PatientId;
+
+        if (dto.Measurement != null)
+        {
+            double weight = dto.Measurement.Weight;
+            double height = dto.Measurement.Height;
+            double imc = CalculateImc(weight, height);
+
+            if (consultation.Measurement == null)
+            {
+                consultation.Measurement = new Measurement();
+            }
+
+            consultation.Measurement.Weight = dto.Measurement.Weight;
+            consultation.Measurement.Height = dto.Measurement.Height;
+            consultation.Measurement.Size = dto.Measurement.Size;
+            consultation.Measurement.IMC = imc;
+        }
+        else
+        {
+            consultation.Measurement = null;
+        }
+
+        await _consultationRepository.UpdateAsync(consultation);
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var consultation = await _consultationRepository.GetByIdAsync(id);
+        if (consultation == null) throw new InvalidOperationException("Consultation not found");
+
+        await _consultationRepository.DeleteAsync(consultation.Id);
     }
 }

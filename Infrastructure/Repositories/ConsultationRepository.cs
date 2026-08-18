@@ -15,6 +15,7 @@ public class ConsultationRepository : BaseRepository<Consultation>, IConsultatio
     {
         return await _dbSet
             .Where(c => c.PatientId == patientId)
+            .Include(c => c.Measurement)
             .OrderByDescending(c => c.Date)
             .ToListAsync();
     }

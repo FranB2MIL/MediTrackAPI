@@ -17,6 +17,7 @@ public class ConsultationController : ControllerBase
         _consultationService = consultationService;
     }
 
+    [AllowAnonymous]
     [HttpGet("patient/{patientId}")]
     public async Task<IActionResult> GetByPatientId(int patientId)
     {
@@ -33,9 +34,23 @@ public class ConsultationController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(CreateConsultationDto dto)
+    public async Task<IActionResult> Create([FromBody] CreateConsultationDto dto)
     {
         await _consultationService.AddAsync(dto);
         return Created();
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateConsultationDto dto)
+    {
+        await _consultationService.UpdateAsync(id, dto);
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _consultationService.DeleteAsync(id);
+        return NoContent();
     }
 }

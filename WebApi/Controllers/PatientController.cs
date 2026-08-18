@@ -16,6 +16,7 @@ public class PatientController : ControllerBase
         _patientService = patientService;
     }
 
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int doctorId)
     {
