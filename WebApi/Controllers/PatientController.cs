@@ -2,6 +2,8 @@ using Application.DTOs.Patient;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using WebApi.Extensions;
 
 namespace WebApi.Controllers;
 
@@ -16,11 +18,11 @@ public class PatientController : ControllerBase
         _patientService = patientService;
     }
 
-    [AllowAnonymous]
+    
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] int doctorId)
+    public async Task<IActionResult> GetAll()
     {
-        var patients = await _patientService.GetAllAsync(doctorId);
+        var patients = await _patientService.GetAllAsync(User.GetDoctorId());
         return Ok(patients);
     }
 
@@ -33,9 +35,9 @@ public class PatientController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreatePatientDto patientDto, [FromQuery] int doctorId)
+    public async Task<IActionResult> Create([FromBody] CreatePatientDto patientDto)
     {
-        await _patientService.AddAsync(patientDto, doctorId);
+        await _patientService.AddAsync(patientDto, User.GetDoctorId());
         return Created();
     }
 

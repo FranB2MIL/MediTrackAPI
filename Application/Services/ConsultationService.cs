@@ -23,7 +23,15 @@ public class ConsultationService : IConsultationService
             Date = c.Date,
             Reason = c.Reason,
             Description = c.Description,
-            PatientId = c.PatientId
+            PatientId = c.PatientId,
+            Measurement = c.Measurement == null ? null : new MeasurementDto
+            {
+                Id = c.Measurement.Id,
+                Weight = c.Measurement.Weight,
+                Height = c.Measurement.Height,
+                Size = c.Measurement.Size,
+                IMC = c.Measurement.IMC
+            }
         });
     }
 
@@ -56,28 +64,31 @@ public class ConsultationService : IConsultationService
         };
     }
 
-    public async Task AddAsync(CreateConsultationDto dto)
+    public async Task AddAsync(CreateConsultationDto dto, int patientId)
     {
         var consultation = new Consultation
         {
             Date = dto.Date,
             Reason = dto.Reason,
             Description = dto.Description,
-            PatientId = dto.PatientId,
+            PatientId = patientId,
         };
-        if (dto.Measurement != null)
+        if (dto.Measurement != null &&
+            dto.Measurement.Weight > 0 &&
+            dto.Measurement.Height > 0)
         {
-            double weight = dto.Measurement.Weight;
-            double height = dto.Measurement.Height;
+            double weight = dto.Measurement.Weight ?? 0;
+            double height = dto.Measurement.Height ?? 0;
+            double size = dto.Measurement.Size ?? 0;
             double imc = CalculateImc(weight, height);
 
-            
+
 
             consultation.Measurement = new Measurement
             {
-                Weight = dto.Measurement.Weight,
-                Height = dto.Measurement.Height,
-                Size = dto.Measurement.Size,
+                Weight = weight,
+                Height = height,
+                Size = size,
                 IMC = imc
             };
         }
@@ -92,12 +103,12 @@ public class ConsultationService : IConsultationService
         consultation.Date = dto.Date;
         consultation.Reason = dto.Reason;
         consultation.Description = dto.Description;
-        consultation.PatientId = dto.PatientId;
 
         if (dto.Measurement != null)
         {
-            double weight = dto.Measurement.Weight;
-            double height = dto.Measurement.Height;
+            double weight = dto.Measurement.Weight ?? 0;
+            double height = dto.Measurement.Height ?? 0;
+            double size = dto.Measurement.Size ?? 0;
             double imc = CalculateImc(weight, height);
 
             if (consultation.Measurement == null)
@@ -105,9 +116,9 @@ public class ConsultationService : IConsultationService
                 consultation.Measurement = new Measurement();
             }
 
-            consultation.Measurement.Weight = dto.Measurement.Weight;
-            consultation.Measurement.Height = dto.Measurement.Height;
-            consultation.Measurement.Size = dto.Measurement.Size;
+            consultation.Measurement.Weight = weight;
+            consultation.Measurement.Height = height;
+            consultation.Measurement.Size = size;
             consultation.Measurement.IMC = imc;
         }
         else

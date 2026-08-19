@@ -33,10 +33,10 @@ public class ConsultationController : ControllerBase
         return Ok(consultation);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateConsultationDto dto)
+    [HttpPost("patient/{patientId}")]
+    public async Task<IActionResult> Create(int patientId, [FromBody] CreateConsultationDto dto)
     {
-        await _consultationService.AddAsync(dto);
+        await _consultationService.AddAsync(dto, patientId);
         return Created();
     }
 
