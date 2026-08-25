@@ -42,8 +42,16 @@ public class PatientService : IPatientService
             HealthInsurance = patient.HealthInsurance
         };
     }
-
-    public async Task AddAsync(CreatePatientDto dto, int doctorId)
+    private static PatientDto MapToDto(Patient patient) => new PatientDto
+    {
+        Id = patient.Id,
+        FirstName = patient.FirstName,
+        LastName = patient.LastName,
+        DateOfBirth = patient.DateOfBirth,
+        DNI = patient.DNI,
+        HealthInsurance = patient.HealthInsurance
+    };
+    public async Task<PatientDto> AddAsync(CreatePatientDto dto, int doctorId)
     {
         var patient = new Patient
         {
@@ -61,6 +69,15 @@ public class PatientService : IPatientService
             PatientId = patient.Id
         };
         await _patientRepository.AddDoctorPatientAsync(doctorPatient);
+        return new PatientDto
+        {
+            Id = patient.Id,
+            FirstName = patient.FirstName,
+            LastName = patient.LastName,
+            DateOfBirth = patient.DateOfBirth,
+            DNI = patient.DNI,
+            HealthInsurance = patient.HealthInsurance
+        };
     }
 
     public async Task UpdateAsync(int id, UpdatePatientDto dto)
