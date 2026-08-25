@@ -1,5 +1,6 @@
 using Application.DTOs.Patient;
 using Application.Interfaces;
+using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -37,8 +38,9 @@ public class PatientController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreatePatientDto patientDto)
     {
-        await _patientService.AddAsync(patientDto, User.GetDoctorId());
-        return Created();
+        var created = await _patientService.AddAsync(patientDto, User.GetDoctorId());
+        
+        return Created($"/api/patient/{created.Id}", created);
     }
 
     [HttpPut("{id}")]
