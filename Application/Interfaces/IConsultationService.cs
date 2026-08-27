@@ -6,7 +6,7 @@ public interface IConsultationService
 {
     Task<IEnumerable<ConsultationDto>> GetByPatientIdAsync(int patientId);
     Task<ConsultationDto?> GetByIdAsync(int id);
-    Task AddAsync(CreateConsultationDto dto, int patientId);
+    Task<ConsultationDto> AddAsync(CreateConsultationDto dto, int patientId);
     Task UpdateAsync(int id, UpdateConsultationDto dto);
     Task DeleteAsync(int id);
 }
