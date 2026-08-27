@@ -36,15 +36,15 @@ public class ConsultationController : ControllerBase
     [HttpPost("patient/{patientId}")]
     public async Task<IActionResult> Create(int patientId, [FromBody] CreateConsultationDto dto)
     {
-        await _consultationService.AddAsync(dto, patientId);
-        return Created();
+        var created = await _consultationService.AddAsync(dto, patientId);
+        return Ok(created);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateConsultationDto dto)
     {
         await _consultationService.UpdateAsync(id, dto);
-        return NoContent();
+        return Ok();
     }
 
     [HttpDelete("{id}")]
