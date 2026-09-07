@@ -36,8 +36,10 @@ public class ConsultationController : ControllerBase
     [HttpPost("patient/{patientId}")]
     public async Task<IActionResult> Create(int patientId, [FromBody] CreateConsultationDto dto)
     {
-        await _consultationService.AddAsync(dto, patientId);
-        return Created();
+        
+        var result = await _consultationService.AddAsync(dto, patientId);
+
+        return Created($"/api/consultation/{result.Id}", result);
     }
 
     [HttpPut("{id}")]

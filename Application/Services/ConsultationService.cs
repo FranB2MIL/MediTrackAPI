@@ -64,7 +64,7 @@ public class ConsultationService : IConsultationService
         };
     }
 
-    public async Task AddAsync(CreateConsultationDto dto, int patientId)
+    public async Task<ConsultationDto> AddAsync(CreateConsultationDto dto, int patientId)
     {
         var consultation = new Consultation
         {
@@ -93,6 +93,22 @@ public class ConsultationService : IConsultationService
             };
         }
         await _consultationRepository.AddAsync(consultation);
+        return new ConsultationDto
+    {
+        Id = consultation.Id,
+        Date = consultation.Date,
+        Reason = consultation.Reason,
+        Description = consultation.Description,
+        PatientId = consultation.PatientId,
+        Measurement = consultation.Measurement == null ? null : new MeasurementDto
+        {
+            Id = consultation.Measurement.Id,
+            Weight = consultation.Measurement.Weight,
+            Height = consultation.Measurement.Height,
+            Size = consultation.Measurement.Size,
+            IMC = consultation.Measurement.IMC
+        }
+    };
     }
 
     public async Task UpdateAsync(int id, UpdateConsultationDto dto)
