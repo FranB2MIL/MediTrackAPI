@@ -17,7 +17,7 @@ public class ConsultationController : ControllerBase
         _consultationService = consultationService;
     }
 
-    [AllowAnonymous]
+    
     [HttpGet("patient/{patientId}")]
     public async Task<IActionResult> GetByPatientId(int patientId)
     {
