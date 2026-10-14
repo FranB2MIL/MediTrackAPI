@@ -14,9 +14,9 @@ public class ConsultationService : IConsultationService
         _consultationRepository = consultationRepository;
     }
 
-    public async Task<IEnumerable<ConsultationDto>> GetByPatientIdAsync(int patientId)
+    public async Task<IEnumerable<ConsultationDto>> GetByPatientAndDoctorIdAsync(int patientId, int doctorId)
     {
-        var consultations = await _consultationRepository.GetByPatientIdAsync(patientId);
+        var consultations = await _consultationRepository.GetByPatientAndDoctorIdAsync(patientId, doctorId);
         return consultations.Select(c => new ConsultationDto
         {
             Id = c.Id,
@@ -41,9 +41,9 @@ public class ConsultationService : IConsultationService
         return Math.Round(weight / (height * height), 2);
     }
 
-    public async Task<ConsultationDto?> GetByIdAsync(int id)
+    public async Task<ConsultationDto?> GetByIdAsync(int id, int doctorId)
     {
-        var consultation = await _consultationRepository.GetByIdWithMeasurementAsync(id);
+        var consultation = await _consultationRepository.GetByIdAndDoctorIdAsync(id, doctorId);
         if (consultation == null) return null;
 
         return new ConsultationDto
@@ -64,7 +64,7 @@ public class ConsultationService : IConsultationService
         };
     }
 
-    public async Task<ConsultationDto> AddAsync(CreateConsultationDto dto, int patientId)
+    public async Task<ConsultationDto> AddAsync(CreateConsultationDto dto, int patientId, int doctorId)
     {
         var consultation = new Consultation
         {
@@ -72,6 +72,7 @@ public class ConsultationService : IConsultationService
             Reason = dto.Reason,
             Description = dto.Description,
             PatientId = patientId,
+            DoctorId = doctorId
         };
         if (dto.Measurement != null &&
             dto.Measurement.Weight > 0 &&
@@ -94,33 +95,33 @@ public class ConsultationService : IConsultationService
         }
         await _consultationRepository.AddAsync(consultation);
         return new ConsultationDto
-    {
-        Id = consultation.Id,
-        Date = consultation.Date,
-        Reason = consultation.Reason,
-        Description = consultation.Description,
-        PatientId = consultation.PatientId,
-        Measurement = consultation.Measurement == null ? null : new MeasurementDto
         {
-            Id = consultation.Measurement.Id,
-            Weight = consultation.Measurement.Weight,
-            Height = consultation.Measurement.Height,
-            Size = consultation.Measurement.Size,
-            IMC = consultation.Measurement.IMC
-        }
-    };
+            Id = consultation.Id,
+            Date = consultation.Date,
+            Reason = consultation.Reason,
+            Description = consultation.Description,
+            PatientId = consultation.PatientId,
+            Measurement = consultation.Measurement == null ? null : new MeasurementDto
+            {
+                Id = consultation.Measurement.Id,
+                Weight = consultation.Measurement.Weight,
+                Height = consultation.Measurement.Height,
+                Size = consultation.Measurement.Size,
+                IMC = consultation.Measurement.IMC
+            }
+        };
     }
 
-    public async Task UpdateAsync(int id, UpdateConsultationDto dto)
+    public async Task<ConsultationDto?> UpdateAsync(int id, int doctorId, UpdateConsultationDto dto)
     {
-        var consultation = await _consultationRepository.GetByIdAsync(id);
-        if (consultation == null) throw new InvalidOperationException("Consultation not found");
+        var consultation = await _consultationRepository.GetByIdAndDoctorIdAsync(id, doctorId);
+        if (consultation == null) return null;
 
         consultation.Date = dto.Date;
         consultation.Reason = dto.Reason;
         consultation.Description = dto.Description;
 
-        if (dto.Measurement != null)
+        if (dto.Measurement != null && dto.Measurement.Weight > 0 && dto.Measurement.Height > 0)
         {
             double weight = dto.Measurement.Weight ?? 0;
             double height = dto.Measurement.Height ?? 0;
@@ -143,13 +144,30 @@ public class ConsultationService : IConsultationService
         }
 
         await _consultationRepository.UpdateAsync(consultation);
+        return new ConsultationDto
+        {
+            Id = consultation.Id,
+            Date = consultation.Date,
+            Reason = consultation.Reason,
+            Description = consultation.Description,
+            PatientId = consultation.PatientId,
+            Measurement = consultation.Measurement == null ? null : new MeasurementDto
+            {
+                Id = consultation.Measurement.Id,
+                Weight = consultation.Measurement.Weight,
+                Height = consultation.Measurement.Height,
+                Size = consultation.Measurement.Size,
+                IMC = consultation.Measurement.IMC
+            }
+        };
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int doctorId)
     {
-        var consultation = await _consultationRepository.GetByIdAsync(id);
-        if (consultation == null) throw new InvalidOperationException("Consultation not found");
+        var consultation = await _consultationRepository.GetByIdAndDoctorIdAsync(id, doctorId);
+        if (consultation == null) return false;
 
         await _consultationRepository.DeleteAsync(consultation.Id);
+        return true;
     }
 }
