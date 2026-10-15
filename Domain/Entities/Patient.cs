@@ -1,6 +1,9 @@
+using Domain.Entities.Enums;
+using Domain.Interfaces;
+
 namespace Domain.Entities
 {
-    public class Patient
+    public class Patient : IAuthenticatable
     {
         public int Id { get; set; }
         public string FirstName { get; set; } = string.Empty;
@@ -12,6 +15,8 @@ namespace Domain.Entities
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
+
+        public Role Role => Role.Patient;
 
         public ICollection<Consultation> Consultations { get; set; } = new List<Consultation>();
         public ICollection<Study> Studies { get; set; } = new List<Study>();
