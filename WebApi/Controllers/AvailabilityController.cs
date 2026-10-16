@@ -1,12 +1,13 @@
 using Application.DTOs.Availability;
 using Application.Interfaces;
+using Domain.Entities.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Extensions;
 
 namespace WebApi.Controllers;
 
-[Authorize]
+[Authorize(Roles = nameof(Role.Doctor))]
 [ApiController]
 [Route("api/[controller]")]
 public class AvailabilityController : ControllerBase
