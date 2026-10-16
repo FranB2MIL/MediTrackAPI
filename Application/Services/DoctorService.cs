@@ -1,3 +1,4 @@
+using Application.Common;
 using Application.DTOs.Doctor;
 using Application.Interfaces;
 using Domain.Entities;
@@ -9,11 +10,14 @@ public class DoctorService : IDoctorService
 {
     private readonly IDoctorRepository _doctorRepository;
     private readonly IPasswordHasher _passwordHasher;
-    public DoctorService(IDoctorRepository doctorRepository, IPasswordHasher passwordHasher)
+    private readonly IAdminRepository _adminRepository;
+    public DoctorService(IDoctorRepository doctorRepository, IPasswordHasher passwordHasher, IAdminRepository adminRepository)
     {
         _doctorRepository = doctorRepository;
         _passwordHasher = passwordHasher;
+        _adminRepository = adminRepository;
     }
+    
 
     public async Task<IEnumerable<DoctorDto>> GetAllAsync()
     {
@@ -41,8 +45,12 @@ public class DoctorService : IDoctorService
         };
     }
 
-    public async Task AddAsync(CreateDoctorDto createDoctorDto)
+    public async Task<DoctorDto?> AddAsync(CreateDoctorDto createDoctorDto)
     {
+        if (await _doctorRepository.GetByMailAsync(createDoctorDto.Email) != null || await _adminRepository.GetAdminByEmailAsync(createDoctorDto.Email) != null)
+        {
+            return null;
+        }
         var doctor = new Doctor
         {
             FirstName = createDoctorDto.FirstName,
@@ -51,18 +59,32 @@ public class DoctorService : IDoctorService
             Password = _passwordHasher.Hash(createDoctorDto.Password)
         };
         await _doctorRepository.AddAsync(doctor);
+        return new DoctorDto
+        {
+            Id = doctor.Id,
+            FirstName = doctor.FirstName,
+            LastName = doctor.LastName,
+            Email = doctor.Email
+        };
     }
 
-    public async Task UpdateAsync(int id, UpdateDoctorDto updateDoctorDto)
+    public async Task<UpdateResult> UpdateAsync(int id, UpdateDoctorDto updateDoctorDto)
     {
         var doctor = await _doctorRepository.GetByIdAsync(id);
-        if (doctor == null) throw new Exception("Doctor not found");
+    if (doctor == null) return UpdateResult.NotFound;
 
-        doctor.FirstName = updateDoctorDto.FirstName;
-        doctor.LastName = updateDoctorDto.LastName;
-        doctor.Email = updateDoctorDto.Email;
+    var doctorWithEmail = await _doctorRepository.GetByMailAsync(updateDoctorDto.Email);
+    var emailUsedByOtherDoctor = doctorWithEmail != null && doctorWithEmail.Id != id;
+    var emailUsedByAdmin = await _adminRepository.GetAdminByEmailAsync(updateDoctorDto.Email) != null;
 
-        await _doctorRepository.UpdateAsync(doctor);
+    if (emailUsedByOtherDoctor || emailUsedByAdmin) return UpdateResult.Conflict;
+
+    doctor.FirstName = updateDoctorDto.FirstName;
+    doctor.LastName = updateDoctorDto.LastName;
+    doctor.Email = updateDoctorDto.Email;
+
+    await _doctorRepository.UpdateAsync(doctor);
+    return UpdateResult.Success;
     }
 
     public async Task DeleteAsync(int id)

@@ -12,14 +12,12 @@ public class AuthService : IAuthService
     private readonly IPatientRepository _patientRepository;
     private readonly IJwtService _jwtService;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly IDoctorService _doctorService;
 
-    public AuthService(IDoctorRepository doctorRepository, IJwtService jwtService, IPasswordHasher passwordHasher, IDoctorService doctorService, IAdminRepository adminRepository, IPatientRepository patientRepository)
+    public AuthService(IDoctorRepository doctorRepository, IJwtService jwtService, IPasswordHasher passwordHasher, IAdminRepository adminRepository, IPatientRepository patientRepository)
     {
         _doctorRepository = doctorRepository;
         _jwtService = jwtService;
         _passwordHasher = passwordHasher;
-        _doctorService = doctorService;
         _adminRepository = adminRepository;
         _patientRepository = patientRepository;
     }
