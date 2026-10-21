@@ -34,5 +34,28 @@ namespace Infrastructure.Repositories
             await _context.DoctorPatients.AddAsync(doctorPatient);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<Patient>> GetAvailableForDoctorAsync(int doctorId)
+        {
+            return await _dbSet
+                .Where(p => p.Email != "" && !p.DoctorPatients.Any(dp => dp.DoctorId == doctorId))
+                .OrderBy(p => p.LastName)
+                .ThenBy(p => p.FirstName)
+                .ToListAsync();
+        }
+
+        public async Task<bool> IsLinkedAsync(int doctorId, int patientId)
+        {
+            return await _context.DoctorPatients
+                .AnyAsync(dp => dp.DoctorId == doctorId && dp.PatientId == patientId);
+        }
+
+        public async Task<bool> RemoveDoctorPatientAsync(int doctorId, int patientId)
+        {
+            var deleted = await _context.DoctorPatients
+                .Where(dp => dp.DoctorId == doctorId && dp.PatientId == patientId)
+                .ExecuteDeleteAsync();
+            return deleted > 0;
+        }
     }
 }

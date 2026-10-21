@@ -1,3 +1,4 @@
+using Application.Common;
 using Application.DTOs.Patient;
 using Application.Interfaces;
 using Domain.Entities;
@@ -16,32 +17,43 @@ public class PatientService : IPatientService
     public async Task<IEnumerable<PatientDto>> GetAllAsync(int doctorId)
     {
         var patients = await _patientRepository.GetByDoctorIdAsync(doctorId);
-        return patients.Select(p => new PatientDto
-        {
-            Id = p.Id,
-            FirstName = p.FirstName,
-            LastName = p.LastName,
-            DateOfBirth = p.DateOfBirth,
-            DNI = p.DNI,
-            HealthInsurance = p.HealthInsurance
-        });
+        return patients.Select(MapToDto);
     }
 
-    public async Task<PatientDto?> GetByIdAsync(int id)
+    public async Task<IEnumerable<PatientSummaryDto>> GetAvailableAsync(int doctorId)
     {
-        var patient = await _patientRepository.GetByIdAsync(id);
-        if (patient == null) return null;
-
-        return new PatientDto
-        {
-            Id = patient.Id,
-            FirstName = patient.FirstName,
-            LastName = patient.LastName,
-            DateOfBirth = patient.DateOfBirth,
-            DNI = patient.DNI,
-            HealthInsurance = patient.HealthInsurance
-        };
+        var patients = await _patientRepository.GetAvailableForDoctorAsync(doctorId);
+        return patients.Select(MapToSummaryDto);
     }
+
+    public async Task<PatientDto?> GetByIdAsync(int id, int doctorId)
+    {
+        if (!await _patientRepository.IsLinkedAsync(doctorId, id)) return null;
+
+        var patient = await _patientRepository.GetByIdAsync(id);
+        return patient == null ? null : MapToDto(patient);
+    }
+
+    public async Task<UpdateResult> LinkAsync(int patientId, int doctorId)
+    {
+        var patient = await _patientRepository.GetByIdAsync(patientId);
+        if (patient == null || string.IsNullOrEmpty(patient.Email)) return UpdateResult.NotFound;
+
+        if (await _patientRepository.IsLinkedAsync(doctorId, patientId)) return UpdateResult.Conflict;
+
+        await _patientRepository.AddDoctorPatientAsync(new DoctorPatient
+        {
+            DoctorId = doctorId,
+            PatientId = patientId
+        });
+        return UpdateResult.Success;
+    }
+
+    public async Task<bool> UnlinkAsync(int patientId, int doctorId)
+    {
+        return await _patientRepository.RemoveDoctorPatientAsync(doctorId, patientId);
+    }
+
     private static PatientDto MapToDto(Patient patient) => new PatientDto
     {
         Id = patient.Id,
@@ -51,51 +63,12 @@ public class PatientService : IPatientService
         DNI = patient.DNI,
         HealthInsurance = patient.HealthInsurance
     };
-    public async Task<PatientDto> AddAsync(CreatePatientDto dto, int doctorId)
+
+    private static PatientSummaryDto MapToSummaryDto(Patient patient) => new PatientSummaryDto
     {
-        var patient = new Patient
-        {
-            FirstName = dto.FirstName,
-            LastName = dto.LastName,
-            DateOfBirth = dto.DateOfBirth,
-            DNI = dto.DNI,
-            HealthInsurance = dto.HealthInsurance
-        };
-        await _patientRepository.AddAsync(patient);
-
-        var doctorPatient = new DoctorPatient
-        {
-            DoctorId = doctorId,
-            PatientId = patient.Id
-        };
-        await _patientRepository.AddDoctorPatientAsync(doctorPatient);
-        return new PatientDto
-        {
-            Id = patient.Id,
-            FirstName = patient.FirstName,
-            LastName = patient.LastName,
-            DateOfBirth = patient.DateOfBirth,
-            DNI = patient.DNI,
-            HealthInsurance = patient.HealthInsurance
-        };
-    }
-
-    public async Task UpdateAsync(int id, UpdatePatientDto dto)
-    {
-        var patient = await _patientRepository.GetByIdAsync(id);
-        if (patient == null) return;
-
-        patient.FirstName = dto.FirstName;
-        patient.LastName = dto.LastName;
-        patient.DateOfBirth = dto.DateOfBirth;
-        patient.DNI = dto.DNI;
-        patient.HealthInsurance = dto.HealthInsurance;
-
-        await _patientRepository.UpdateAsync(patient);
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        await _patientRepository.DeleteAsync(id);
-    }
+        Id = patient.Id,
+        FirstName = patient.FirstName,
+        LastName = patient.LastName,
+        DNI = patient.DNI
+    };
 }
