@@ -1,11 +1,13 @@
 using Application.DTOs.Consultation;
 using Application.Interfaces;
+using Domain.Entities.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApi.Extensions;
 
 namespace WebApi.Controllers;
 
-[Authorize]
+[Authorize(Roles = nameof(Role.Doctor))]
 [ApiController]
 [Route("api/[controller]")]
 public class ConsultationController : ControllerBase
@@ -17,18 +19,22 @@ public class ConsultationController : ControllerBase
         _consultationService = consultationService;
     }
 
-    [AllowAnonymous]
+    
     [HttpGet("patient/{patientId}")]
     public async Task<IActionResult> GetByPatientId(int patientId)
     {
-        var consultations = await _consultationService.GetByPatientIdAsync(patientId);
+        var doctorId = User.GetDoctorId();
+        var consultations = await _consultationService.GetByPatientAndDoctorIdAsync(patientId, doctorId);
         return Ok(consultations);
     }
+
+    
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var consultation = await _consultationService.GetByIdAsync(id);
+        var doctorId = User.GetDoctorId();
+        var consultation = await _consultationService.GetByIdAsync(id, doctorId);
         if (consultation == null) return NotFound();
         return Ok(consultation);
     }
@@ -36,8 +42,8 @@ public class ConsultationController : ControllerBase
     [HttpPost("patient/{patientId}")]
     public async Task<IActionResult> Create(int patientId, [FromBody] CreateConsultationDto dto)
     {
-        
-        var result = await _consultationService.AddAsync(dto, patientId);
+        var doctorId = User.GetDoctorId();
+        var result = await _consultationService.AddAsync(dto, patientId, doctorId);
 
         return Created($"/api/consultation/{result.Id}", result);
     }
@@ -45,14 +51,18 @@ public class ConsultationController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateConsultationDto dto)
     {
-        await _consultationService.UpdateAsync(id, dto);
-        return Ok();
+        var doctorId = User.GetDoctorId();
+        var response = await _consultationService.UpdateAsync(id, doctorId, dto);
+        if (response == null) return NotFound();
+        return Ok(response);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _consultationService.DeleteAsync(id);
-        return NoContent();
+        var doctorId = User.GetDoctorId();
+        var response = await _consultationService.DeleteAsync(id, doctorId);
+        if (!response) return NotFound();
+        return NoContent();   
     }
 }

@@ -1,14 +1,13 @@
-using Application.DTOs.Patient;
+using Application.Common;
 using Application.Interfaces;
-using Domain.Entities;
+using Domain.Entities.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using WebApi.Extensions;
 
 namespace WebApi.Controllers;
 
-[Authorize]
+[Authorize(Roles = nameof(Role.Doctor))]
 [ApiController]
 [Route("api/[controller]")]
 public class PatientController : ControllerBase
@@ -19,7 +18,6 @@ public class PatientController : ControllerBase
         _patientService = patientService;
     }
 
-    
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -27,33 +25,38 @@ public class PatientController : ControllerBase
         return Ok(patients);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("available")]
+    public async Task<IActionResult> GetAvailable()
+    {
+        var patients = await _patientService.GetAvailableAsync(User.GetDoctorId());
+        return Ok(patients);
+    }
+
+    [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var patient = await _patientService.GetByIdAsync(id);
+        var patient = await _patientService.GetByIdAsync(id, User.GetDoctorId());
         if (patient == null) return NotFound();
         return Ok(patient);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreatePatientDto patientDto)
+    [HttpPost("{id:int}/link")]
+    public async Task<IActionResult> Link(int id)
     {
-        var created = await _patientService.AddAsync(patientDto, User.GetDoctorId());
-        
-        return Created($"/api/patient/{created.Id}", created);
+        var result = await _patientService.LinkAsync(id, User.GetDoctorId());
+        return result switch
+        {
+            UpdateResult.NotFound => NotFound(),
+            UpdateResult.Conflict => Conflict(new { message = "El paciente ya está en tu lista." }),
+            _ => NoContent()
+        };
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdatePatientDto patientDto)
+    [HttpDelete("{id:int}/link")]
+    public async Task<IActionResult> Unlink(int id)
     {
-        await _patientService.UpdateAsync(id, patientDto);
-        return NoContent();
-    }
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
-    {
-        await _patientService.DeleteAsync(id);
+        var removed = await _patientService.UnlinkAsync(id, User.GetDoctorId());
+        if (!removed) return NotFound();
         return NoContent();
     }
 }

@@ -4,9 +4,9 @@ namespace Application.Interfaces;
 
 public interface IConsultationService
 {
-    Task<IEnumerable<ConsultationDto>> GetByPatientIdAsync(int patientId);
-    Task<ConsultationDto?> GetByIdAsync(int id);
-    Task<ConsultationDto> AddAsync(CreateConsultationDto dto, int patientId);
-    Task UpdateAsync(int id, UpdateConsultationDto dto);
-    Task DeleteAsync(int id);
+    Task<IEnumerable<ConsultationDto>> GetByPatientAndDoctorIdAsync(int patientId, int doctorId);
+    Task<ConsultationDto?> GetByIdAsync(int id, int doctorId);
+    Task<ConsultationDto> AddAsync(CreateConsultationDto dto, int patientId, int doctorId);
+    Task<ConsultationDto?> UpdateAsync(int id, int doctorId, UpdateConsultationDto dto);
+    Task<bool> DeleteAsync(int id, int doctorId);
 }

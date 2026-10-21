@@ -4,6 +4,7 @@ using System.Text;
 using Application.Interfaces;
 using Application.Settings;
 using Domain.Entities;
+using Domain.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -18,13 +19,13 @@ public class JwtService : IJwtService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public string GenerateToken(Doctor doctor)
+    public string GenerateToken(IAuthenticatable user)
     {
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, doctor.Id.ToString()),
-            new Claim(ClaimTypes.Email, doctor.Email),
-            new Claim(ClaimTypes.Role, "Doctor")
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, user.Role.ToString())
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));

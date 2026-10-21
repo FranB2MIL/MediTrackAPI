@@ -20,4 +20,9 @@ public class AvailabilityRepository : BaseRepository<Availability>, IAvailabilit
             .ThenBy(a => a.StartTime)
             .ToListAsync();
     }
+
+    public async Task<Availability?> GetByIdAndDoctorIdAsync(int id, int doctorId)
+    {
+        return await _dbSet.FirstOrDefaultAsync(a => a.Id == id && a.DoctorId == doctorId);
+    }
 }

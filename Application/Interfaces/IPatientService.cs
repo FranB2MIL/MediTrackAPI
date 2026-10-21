@@ -1,3 +1,4 @@
+using Application.Common;
 using Application.DTOs.Patient;
 
 namespace Application.Interfaces
@@ -5,9 +6,9 @@ namespace Application.Interfaces
     public interface IPatientService
     {
         Task<IEnumerable<PatientDto>> GetAllAsync(int doctorId);
-        Task<PatientDto?> GetByIdAsync(int id);
-        Task <PatientDto> AddAsync(CreatePatientDto patientDto, int doctorId);
-        Task UpdateAsync(int id, UpdatePatientDto patientDto);
-        Task DeleteAsync(int id);
+        Task<IEnumerable<PatientSummaryDto>> GetAvailableAsync(int doctorId);
+        Task<PatientDto?> GetByIdAsync(int id, int doctorId);
+        Task<UpdateResult> LinkAsync(int patientId, int doctorId);
+        Task<bool> UnlinkAsync(int patientId, int doctorId);
     }
 }

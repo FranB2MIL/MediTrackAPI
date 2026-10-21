@@ -70,10 +70,10 @@ public class AvailabilityService : IAvailabilityService
         return MapToDto(availability);
     }
 
-    public async Task UpdateAsync(int id, UpdateAvailabilityDto dto)
+    public async Task<bool> UpdateAsync(int id, int doctorId, UpdateAvailabilityDto dto)
     {
-        var availability = await _availabilityRepository.GetByIdAsync(id);
-        if (availability == null) throw new InvalidOperationException("Availability not found.");
+        var availability = await _availabilityRepository.GetByIdAndDoctorIdAsync(id, doctorId);
+        if (availability == null) return false;
 
         var start = ParseTime(dto.StartTime, "StartTime");
         var end = ParseTime(dto.EndTime, "EndTime");
@@ -85,13 +85,15 @@ public class AvailabilityService : IAvailabilityService
         availability.AppointmentDuration = dto.AppointmentDuration;
 
         await _availabilityRepository.UpdateAsync(availability);
+        return true;
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int doctorId)
     {
-        var availability = await _availabilityRepository.GetByIdAsync(id);
-        if (availability == null) throw new InvalidOperationException("Availability not found.");
+        var availability = await _availabilityRepository.GetByIdAndDoctorIdAsync(id, doctorId);
+        if (availability == null) return false;
 
         await _availabilityRepository.DeleteAsync(id);
+        return true;
     }
 }

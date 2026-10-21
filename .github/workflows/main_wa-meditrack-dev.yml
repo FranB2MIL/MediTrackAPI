@@ -54,6 +54,13 @@ jobs:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_AD457D3A904748BCA5DD8E36055FB7AA }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_618FB1CF51A942CEB567028468E69297 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_8DB38F603A46467890FACCADBC173147 }}
+        
+      - name: Install dotnet-ef tool
+        run: dotnet tool install --global dotnet-ef --version 10.*
+
+      - name: Update database with EF Core migrations
+        run: dotnet ef database update --project MediTrackAPI/Infrastructure/Infrastructure.csproj --startup-project MediTrackAPI/WebApi/WebApi.csproj
+
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
