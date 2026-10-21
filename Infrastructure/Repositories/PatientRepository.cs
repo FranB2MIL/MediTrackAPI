@@ -24,6 +24,11 @@ namespace Infrastructure.Repositories
             return await _dbSet.FirstOrDefaultAsync(p => p.DNI == dni);
         }
 
+        public async Task<Patient?> GetByEmailAsync(string email)
+        {
+            return await _dbSet.FirstOrDefaultAsync(p => p.Email == email);
+        }
+
         public async Task AddDoctorPatientAsync(DoctorPatient doctorPatient)
         {
             await _context.DoctorPatients.AddAsync(doctorPatient);

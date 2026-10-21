@@ -1,11 +1,13 @@
+using Application.Common;
 using Application.DTOs.Doctor;
 using Application.Interfaces;
+using Domain.Entities.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = nameof(Role.Admin))]
     [ApiController]
     [Route("api/[controller]")]
     public class DoctorController : ControllerBase
@@ -30,19 +32,25 @@ namespace WebApi.Controllers
             return Ok(doctor);
         }
 
-        
+
         [HttpPost]
         public async Task<ActionResult<DoctorDto>> Create([FromBody] CreateDoctorDto dto)
         {
-            await _doctorService.AddAsync(dto);
-            return Created();
+            var result = await _doctorService.AddAsync(dto);
+            if (result == null) return Conflict(new { message = "Ya existe un doctor o admin con el mismo mail." });
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateDoctorDto dto)
         {
-            await _doctorService.UpdateAsync(id, dto);
-            return NoContent();
+            var result = await _doctorService.UpdateAsync(id, dto);
+            return result switch
+            {
+                UpdateResult.NotFound => NotFound(),
+                UpdateResult.Conflict => Conflict(new { message = "Ya existe una cuenta con ese mail." }),
+                _ => NoContent()
+            };
         }
 
         [HttpDelete("{id}")]

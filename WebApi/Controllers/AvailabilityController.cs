@@ -1,12 +1,13 @@
 using Application.DTOs.Availability;
 using Application.Interfaces;
+using Domain.Entities.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Extensions;
 
 namespace WebApi.Controllers;
 
-[Authorize]
+[Authorize(Roles = nameof(Role.Doctor))]
 [ApiController]
 [Route("api/[controller]")]
 public class AvailabilityController : ControllerBase
@@ -35,14 +36,16 @@ public class AvailabilityController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateAvailabilityDto dto)
     {
-        await _availabilityService.UpdateAsync(id, dto);
+        var ok = await _availabilityService.UpdateAsync(id, User.GetDoctorId(), dto);
+        if (!ok) return NotFound();
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _availabilityService.DeleteAsync(id);
+        var ok = await _availabilityService.DeleteAsync(id, User.GetDoctorId());
+        if (!ok) return NotFound();
         return NoContent();
     }
 }

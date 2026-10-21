@@ -15,6 +15,7 @@ public class MediTrackDbContext : DbContext
     public DbSet<Study> Studies { get; set; }
     public DbSet<Availability> Availabilities { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
+    public DbSet<Admin> Admins { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
