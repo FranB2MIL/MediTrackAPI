@@ -6,6 +6,6 @@ public interface IAvailabilityService
 {
     Task<IEnumerable<AvailabilityDto>> GetByDoctorIdAsync(int doctorId);
     Task<AvailabilityDto> AddAsync(CreateAvailabilityDto dto, int doctorId);
-    Task UpdateAsync(int id, UpdateAvailabilityDto dto);
-    Task DeleteAsync(int id);
+    Task<bool> UpdateAsync(int id, int doctorId, UpdateAvailabilityDto dto);
+    Task<bool> DeleteAsync(int id, int doctorId);
 }

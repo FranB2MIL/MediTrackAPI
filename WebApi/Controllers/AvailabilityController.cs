@@ -36,14 +36,16 @@ public class AvailabilityController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateAvailabilityDto dto)
     {
-        await _availabilityService.UpdateAsync(id, dto);
+        var ok = await _availabilityService.UpdateAsync(id, User.GetDoctorId(), dto);
+        if (!ok) return NotFound();
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _availabilityService.DeleteAsync(id);
+        var ok = await _availabilityService.DeleteAsync(id, User.GetDoctorId());
+        if (!ok) return NotFound();
         return NoContent();
     }
 }
