@@ -1,3 +1,4 @@
+using Application.Common;
 using Application.DTOs.Availability;
 using Application.Interfaces;
 using Domain.Entities.Enums;
@@ -36,16 +37,24 @@ public class AvailabilityController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateAvailabilityDto dto)
     {
-        var ok = await _availabilityService.UpdateAsync(id, User.GetDoctorId(), dto);
-        if (!ok) return NotFound();
-        return NoContent();
+        var result = await _availabilityService.UpdateAsync(id, User.GetDoctorId(), dto);
+        return result switch
+        {
+            UpdateResult.NotFound => NotFound(),
+            UpdateResult.Conflict => Conflict(new { message = "No se puede modificar: hay turnos reservados a futuro que quedarían fuera del nuevo horario." }),
+            _ => NoContent()
+        };
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var ok = await _availabilityService.DeleteAsync(id, User.GetDoctorId());
-        if (!ok) return NotFound();
-        return NoContent();
+        var result = await _availabilityService.DeleteAsync(id, User.GetDoctorId());
+        return result switch
+        {
+            UpdateResult.NotFound => NotFound(),
+            UpdateResult.Conflict => Conflict(new { message = "No se puede borrar: hay turnos reservados a futuro en esta disponibilidad." }),
+            _ => NoContent()
+        };
     }
 }

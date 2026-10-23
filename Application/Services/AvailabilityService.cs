@@ -1,4 +1,5 @@
 using System.Globalization;
+using Application.Common;
 using Application.DTOs.Availability;
 using Application.Interfaces;
 using Domain.Entities;
@@ -9,10 +10,12 @@ namespace Application.Services;
 public class AvailabilityService : IAvailabilityService
 {
     private readonly IAvailabilityRepository _availabilityRepository;
+    private readonly IAppointmentRepository _appointmentRepository;
 
-    public AvailabilityService(IAvailabilityRepository availabilityRepository)
+    public AvailabilityService(IAvailabilityRepository availabilityRepository, IAppointmentRepository appointmentRepository)
     {
         _availabilityRepository = availabilityRepository;
+        _appointmentRepository = appointmentRepository;
     }
 
     private static AvailabilityDto MapToDto(Availability availability) => new AvailabilityDto
@@ -70,30 +73,45 @@ public class AvailabilityService : IAvailabilityService
         return MapToDto(availability);
     }
 
-    public async Task<bool> UpdateAsync(int id, int doctorId, UpdateAvailabilityDto dto)
+    public async Task<UpdateResult> UpdateAsync(int id, int doctorId, UpdateAvailabilityDto dto)
     {
         var availability = await _availabilityRepository.GetByIdAndDoctorIdAsync(id, doctorId);
-        if (availability == null) return false;
+        if (availability == null) return UpdateResult.NotFound;
 
         var start = ParseTime(dto.StartTime, "StartTime");
         var end = ParseTime(dto.EndTime, "EndTime");
         Validate(dto.DayOfWeek, start, end, dto.AppointmentDuration);
 
-        availability.DayOfWeek = (DayOfWeek)dto.DayOfWeek;
-        availability.StartTime = start;
-        availability.EndTime = end;
-        availability.AppointmentDuration = dto.AppointmentDuration;
+        var updated = new Availability
+        {
+            DayOfWeek = (DayOfWeek)dto.DayOfWeek,
+            StartTime = start,
+            EndTime = end,
+            AppointmentDuration = dto.AppointmentDuration
+        };
+
+        var futureReserved = await _appointmentRepository.GetFutureReservedByAvailabilityIdAsync(id, ArgentinaTime.Now());
+        if (futureReserved.Any(a => !SlotGenerator.Fits(updated, a.Date, a.StartTime)))
+            return UpdateResult.Conflict;
+
+        availability.DayOfWeek = updated.DayOfWeek;
+        availability.StartTime = updated.StartTime;
+        availability.EndTime = updated.EndTime;
+        availability.AppointmentDuration = updated.AppointmentDuration;
 
         await _availabilityRepository.UpdateAsync(availability);
-        return true;
+        return UpdateResult.Success;
     }
 
-    public async Task<bool> DeleteAsync(int id, int doctorId)
+    public async Task<UpdateResult> DeleteAsync(int id, int doctorId)
     {
         var availability = await _availabilityRepository.GetByIdAndDoctorIdAsync(id, doctorId);
-        if (availability == null) return false;
+        if (availability == null) return UpdateResult.NotFound;
+
+        var futureReserved = await _appointmentRepository.GetFutureReservedByAvailabilityIdAsync(id, ArgentinaTime.Now());
+        if (futureReserved.Any()) return UpdateResult.Conflict;
 
         await _availabilityRepository.DeleteAsync(id);
-        return true;
+        return UpdateResult.Success;
     }
 }

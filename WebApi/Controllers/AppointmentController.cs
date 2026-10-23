@@ -1,3 +1,4 @@
+using Application.Common;
 using Application.DTOs.Appointment;
 using Application.Interfaces;
 using Domain.Entities.Enums;
@@ -37,17 +38,27 @@ public class AppointmentController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateAppointmentDto dto)
     {
-        var created = await _appointmentService.AddAsync(dto, User.GetDoctorId());
-        if (created == null) return NotFound();
-        return Created($"/api/appointment/{created.Id}", created);
+        var (result, created) = await _appointmentService.AddAsync(dto, User.GetDoctorId());
+        return result switch
+        {
+            BookingResult.NotFound => NotFound(),
+            BookingResult.Invalid => BadRequest(new { message = "El horario no coincide con la disponibilidad." }),
+            BookingResult.Conflict => Conflict(new { message = "Ese horario ya está reservado." }),
+            _ => Created($"/api/appointment/{created!.Id}", created)
+        };
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateAppointmentDto dto)
     {
-        var ok = await _appointmentService.UpdateAsync(id, User.GetDoctorId(), dto);
-        if (!ok) return NotFound();
-        return NoContent();
+        var result = await _appointmentService.UpdateAsync(id, User.GetDoctorId(), dto);
+        return result switch
+        {
+            BookingResult.NotFound => NotFound(),
+            BookingResult.Invalid => BadRequest(new { message = "El horario no coincide con la disponibilidad." }),
+            BookingResult.Conflict => Conflict(new { message = "Ese horario ya está reservado." }),
+            _ => NoContent()
+        };
     }
 
     [HttpPut("{id}/cancel")]
