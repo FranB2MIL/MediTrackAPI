@@ -10,10 +10,14 @@ namespace Application.Services;
 public class AppointmentService : IAppointmentService
 {
     private readonly IAppointmentRepository _appointmentRepository;
-    
-    public AppointmentService(IAppointmentRepository appointmentRepository)
+    private readonly IAvailabilityRepository _availabilityRepository;
+    private readonly IPatientRepository _patientRepository;
+
+    public AppointmentService(IAppointmentRepository appointmentRepository, IAvailabilityRepository availabilityRepository, IPatientRepository patientRepository)
     {
         _appointmentRepository = appointmentRepository;
+        _availabilityRepository = availabilityRepository;
+        _patientRepository = patientRepository;
     }
 
     private static AppointmentDto MapToDto(Appointment appointment) => new AppointmentDto
@@ -57,14 +61,20 @@ public class AppointmentService : IAppointmentService
         return appointments.Select(MapToDto);
     }
 
-    public async Task<AppointmentDto?> GetByIdAsync(int id)
+    public async Task<AppointmentDto?> GetByIdAsync(int id, int doctorId)
     {
-        var appointment = await _appointmentRepository.GetByIdWithPatientAsync(id);
+        var appointment = await _appointmentRepository.GetByIdAndDoctorIdAsync(id, doctorId);
         return appointment == null ? null : MapToDto(appointment);
     }
 
-    public async Task<AppointmentDto> AddAsync(CreateAppointmentDto dto, int doctorId)
+    public async Task<AppointmentDto?> AddAsync(CreateAppointmentDto dto, int doctorId)
     {
+        var availability = await _availabilityRepository.GetByIdAndDoctorIdAsync(dto.AvailabilityId, doctorId);
+        if (availability == null) return null;
+
+        if (dto.PatientId.HasValue && !await _patientRepository.IsLinkedAsync(doctorId, dto.PatientId.Value))
+            return null;
+
         var appointment = new Appointment
         {
             Date = ParseDate(dto.Date),
@@ -82,10 +92,13 @@ public class AppointmentService : IAppointmentService
         return MapToDto(created!);    
     }
 
-    public async Task UpdateAsync(int id, UpdateAppointmentDto dto)
+    public async Task<bool> UpdateAsync(int id, int doctorId, UpdateAppointmentDto dto)
     {
-        var appointment = await _appointmentRepository.GetByIdAsync(id);
-        if (appointment == null) throw new InvalidOperationException("Appointment not found");
+        var appointment = await _appointmentRepository.GetByIdAndDoctorIdAsync(id, doctorId);
+        if (appointment == null) return false;
+
+        if (dto.PatientId.HasValue && !await _patientRepository.IsLinkedAsync(doctorId, dto.PatientId.Value))
+            return false;
 
         appointment.Date = ParseDate(dto.Date);
         appointment.StartTime = ParseTime(dto.StartTime);
@@ -93,22 +106,25 @@ public class AppointmentService : IAppointmentService
         appointment.PatientId = dto.PatientId;
 
         await _appointmentRepository.UpdateAsync(appointment);
+        return true;
     }
 
-    public async Task CancelAsync(int id)
+    public async Task<bool> CancelAsync(int id, int doctorId)
     {
-        var appointment = await _appointmentRepository.GetByIdAsync(id);
-        if (appointment == null) throw new InvalidOperationException("Appointment not found");
+        var appointment = await _appointmentRepository.GetByIdAndDoctorIdAsync(id, doctorId);
+        if (appointment == null) return false;
 
         appointment.Status = AppointmentStatus.Cancelado;
         await _appointmentRepository.UpdateAsync(appointment);
+        return true;
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int doctorId)
     {
-        var appointment = await _appointmentRepository.GetByIdAsync(id);
-        if (appointment == null) throw new InvalidOperationException("Appointment not found");
+        var appointment = await _appointmentRepository.GetByIdAndDoctorIdAsync(id, doctorId);
+        if (appointment == null) return false;
 
-        await _appointmentRepository.DeleteAsync(id);
+        await _appointmentRepository.DeleteAsync(appointment.Id);
+        return true;
     }
 }

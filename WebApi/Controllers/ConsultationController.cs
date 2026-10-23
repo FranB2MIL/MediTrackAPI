@@ -44,6 +44,7 @@ public class ConsultationController : ControllerBase
     {
         var doctorId = User.GetDoctorId();
         var result = await _consultationService.AddAsync(dto, patientId, doctorId);
+        if (result == null) return NotFound();
 
         return Created($"/api/consultation/{result.Id}", result);
     }

@@ -33,4 +33,17 @@ public class ConsultationRepository : BaseRepository<Consultation>, IConsultatio
             .Include(c => c.Measurement)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
+
+    public async Task<IEnumerable<Consultation>> GetByPatientIdAsync(int patientId, int? doctorId)
+    {
+        var query = _dbSet.Where(c => c.PatientId == patientId);
+        if (doctorId.HasValue)
+            query = query.Where(c => c.DoctorId == doctorId.Value);
+
+        return await query
+            .Include(c => c.Measurement)
+            .Include(c => c.Doctor)
+            .OrderByDescending(c => c.Date)
+            .ToListAsync();
+    }
 }

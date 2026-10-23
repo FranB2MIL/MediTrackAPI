@@ -28,4 +28,11 @@ public class AppointmentRepository : BaseRepository<Appointment>, IAppointmentRe
             .Include(a => a.Patient)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
+
+    public async Task<Appointment?> GetByIdAndDoctorIdAsync(int id, int doctorId)
+    {
+        return await _dbSet
+            .Include(a => a.Patient)
+            .FirstOrDefaultAsync(a => a.Id == id && a.DoctorId == doctorId);
+    }
 }

@@ -8,10 +8,12 @@ namespace Application.Services;
 public class ConsultationService : IConsultationService
 {
     private readonly IConsultationRepository _consultationRepository;
+    private readonly IPatientRepository _patientRepository;
 
-    public ConsultationService(IConsultationRepository consultationRepository)
+    public ConsultationService(IConsultationRepository consultationRepository, IPatientRepository patientRepository)
     {
         _consultationRepository = consultationRepository;
+        _patientRepository = patientRepository;
     }
 
     public async Task<IEnumerable<ConsultationDto>> GetByPatientAndDoctorIdAsync(int patientId, int doctorId)
@@ -64,8 +66,10 @@ public class ConsultationService : IConsultationService
         };
     }
 
-    public async Task<ConsultationDto> AddAsync(CreateConsultationDto dto, int patientId, int doctorId)
+    public async Task<ConsultationDto?> AddAsync(CreateConsultationDto dto, int patientId, int doctorId)
     {
+        if (!await _patientRepository.IsLinkedAsync(doctorId, patientId)) return null;
+
         var consultation = new Consultation
         {
             Date = dto.Date,

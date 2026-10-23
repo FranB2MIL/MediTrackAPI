@@ -6,5 +6,6 @@ namespace Domain.Interfaces
     {
         Task<IEnumerable<Appointment>> GetByDoctorAndRangeAsync(int doctorId, DateTime from, DateTime to);
         Task<Appointment?> GetByIdWithPatientAsync(int id);
+        Task<Appointment?> GetByIdAndDoctorIdAsync(int id, int doctorId);
     }
 }
