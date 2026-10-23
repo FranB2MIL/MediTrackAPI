@@ -72,9 +72,11 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("AvailabilityId");
 
-                    b.HasIndex("DoctorId");
-
                     b.HasIndex("PatientId");
+
+                    b.HasIndex("DoctorId", "Date", "StartTime")
+                        .IsUnique()
+                        .HasFilter("\"Status\" <> 2");
 
                     b.ToTable("Appointments");
                 });

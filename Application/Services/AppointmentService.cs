@@ -1,4 +1,5 @@
 using System.Globalization;
+using Application.Common;
 using Application.DTOs.Appointment;
 using Application.Interfaces;
 using Domain.Entities;
@@ -10,10 +11,14 @@ namespace Application.Services;
 public class AppointmentService : IAppointmentService
 {
     private readonly IAppointmentRepository _appointmentRepository;
-    
-    public AppointmentService(IAppointmentRepository appointmentRepository)
+    private readonly IAvailabilityRepository _availabilityRepository;
+    private readonly IPatientRepository _patientRepository;
+
+    public AppointmentService(IAppointmentRepository appointmentRepository, IAvailabilityRepository availabilityRepository, IPatientRepository patientRepository)
     {
         _appointmentRepository = appointmentRepository;
+        _availabilityRepository = availabilityRepository;
+        _patientRepository = patientRepository;
     }
 
     private static AppointmentDto MapToDto(Appointment appointment) => new AppointmentDto
@@ -57,58 +62,85 @@ public class AppointmentService : IAppointmentService
         return appointments.Select(MapToDto);
     }
 
-    public async Task<AppointmentDto?> GetByIdAsync(int id)
+    public async Task<AppointmentDto?> GetByIdAsync(int id, int doctorId)
     {
-        var appointment = await _appointmentRepository.GetByIdWithPatientAsync(id);
+        var appointment = await _appointmentRepository.GetByIdAndDoctorIdAsync(id, doctorId);
         return appointment == null ? null : MapToDto(appointment);
     }
 
-    public async Task<AppointmentDto> AddAsync(CreateAppointmentDto dto, int doctorId)
+    public async Task<(BookingResult Result, AppointmentDto? Appointment)> AddAsync(CreateAppointmentDto dto, int doctorId)
     {
+        var availability = await _availabilityRepository.GetByIdAndDoctorIdAsync(dto.AvailabilityId, doctorId);
+        if (availability == null) return (BookingResult.NotFound, null);
+
+        var patientId = dto.PatientId!.Value;
+        if (!await _patientRepository.IsLinkedAsync(doctorId, patientId))
+            return (BookingResult.NotFound, null);
+
+        var date = ParseDate(dto.Date);
+        var startTime = ParseTime(dto.StartTime);
+        if (!SlotGenerator.Fits(availability, date, startTime)) return (BookingResult.Invalid, null);
+
         var appointment = new Appointment
         {
-            Date = ParseDate(dto.Date),
-            StartTime = ParseTime(dto.StartTime),
-            Status = dto.PatientId.HasValue
-                ? AppointmentStatus.Reservado
-                : AppointmentStatus.Disponible,
+            Date = date,
+            StartTime = startTime,
+            Status = AppointmentStatus.Reservado,
             AvailabilityId = dto.AvailabilityId,
             DoctorId = doctorId,
-            PatientId = dto.PatientId
+            PatientId = patientId
         };
-        await _appointmentRepository.AddAsync(appointment);
+        if (!await _appointmentRepository.TryAddAsync(appointment)) return (BookingResult.Conflict, null);
 
         var created = await _appointmentRepository.GetByIdWithPatientAsync(appointment.Id);
-        return MapToDto(created!);    
+        return (BookingResult.Success, MapToDto(created!));
     }
 
-    public async Task UpdateAsync(int id, UpdateAppointmentDto dto)
+    public async Task<BookingResult> UpdateAsync(int id, int doctorId, UpdateAppointmentDto dto)
     {
-        var appointment = await _appointmentRepository.GetByIdAsync(id);
-        if (appointment == null) throw new InvalidOperationException("Appointment not found");
+        var appointment = await _appointmentRepository.GetByIdAndDoctorIdAsync(id, doctorId);
+        if (appointment == null) return BookingResult.NotFound;
 
-        appointment.Date = ParseDate(dto.Date);
-        appointment.StartTime = ParseTime(dto.StartTime);
+        if (dto.PatientId.HasValue && !await _patientRepository.IsLinkedAsync(doctorId, dto.PatientId.Value))
+            return BookingResult.NotFound;
+
+        var date = ParseDate(dto.Date);
+        var startTime = ParseTime(dto.StartTime);
+
+        // Solo se valida si cambia el horario, para poder editar el estado de turnos viejos
+        // cuya disponibilidad se modificó después.
+        if (date != appointment.Date || startTime != appointment.StartTime)
+        {
+            var availability = await _availabilityRepository.GetByIdAndDoctorIdAsync(appointment.AvailabilityId, doctorId);
+            if (availability == null || !SlotGenerator.Fits(availability, date, startTime))
+                return BookingResult.Invalid;
+        }
+
+        appointment.Date = date;
+        appointment.StartTime = startTime;
         appointment.Status = ParseStatus(dto.Status);
         appointment.PatientId = dto.PatientId;
 
-        await _appointmentRepository.UpdateAsync(appointment);
+        if (!await _appointmentRepository.TryUpdateAsync(appointment)) return BookingResult.Conflict;
+        return BookingResult.Success;
     }
 
-    public async Task CancelAsync(int id)
+    public async Task<bool> CancelAsync(int id, int doctorId)
     {
-        var appointment = await _appointmentRepository.GetByIdAsync(id);
-        if (appointment == null) throw new InvalidOperationException("Appointment not found");
+        var appointment = await _appointmentRepository.GetByIdAndDoctorIdAsync(id, doctorId);
+        if (appointment == null) return false;
 
         appointment.Status = AppointmentStatus.Cancelado;
         await _appointmentRepository.UpdateAsync(appointment);
+        return true;
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int doctorId)
     {
-        var appointment = await _appointmentRepository.GetByIdAsync(id);
-        if (appointment == null) throw new InvalidOperationException("Appointment not found");
+        var appointment = await _appointmentRepository.GetByIdAndDoctorIdAsync(id, doctorId);
+        if (appointment == null) return false;
 
-        await _appointmentRepository.DeleteAsync(id);
+        await _appointmentRepository.DeleteAsync(appointment.Id);
+        return true;
     }
 }

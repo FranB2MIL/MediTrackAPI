@@ -2,8 +2,8 @@ namespace Domain.Entities.Enums
 {
     public enum AppointmentStatus
     {
-        Disponible,
-        Reservado,
-        Cancelado
+        Disponible = 0,
+        Reservado = 1,
+        Cancelado = 2
     }
 }

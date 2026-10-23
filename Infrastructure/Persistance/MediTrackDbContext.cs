@@ -34,5 +34,11 @@ public class MediTrackDbContext : DbContext
             entity.Property(m => m.Size).HasColumnType("REAL");
             entity.Property(m => m.IMC).HasColumnType("REAL");
         });
+
+        // Un solo turno activo por doctor y horario; los cancelados no cuentan. 2 = AppointmentStatus.Cancelado
+        modelBuilder.Entity<Appointment>()
+            .HasIndex(a => new { a.DoctorId, a.Date, a.StartTime })
+            .IsUnique()
+            .HasFilter("\"Status\" <> 2");
     }
 }
