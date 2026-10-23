@@ -1,3 +1,5 @@
+using Application.Common;
+using Application.DTOs.Appointment;
 using Application.DTOs.Patient;
 using Application.Interfaces;
 using Domain.Entities.Enums;
@@ -48,4 +50,49 @@ public class PatientPortalController : ControllerBase
         if (profile == null) return NotFound();
         return Ok(profile);
     }
+
+    [HttpGet("doctors/{doctorId:int}/available-slots")]
+    public async Task<IActionResult> GetAvailableSlots(int doctorId, [FromQuery] DateTime from, [FromQuery] DateTime to)
+    {
+        if (to.Date < from.Date || (to.Date - from.Date).TotalDays > MaxSlotRangeDays)
+            return BadRequest(new { message = $"El rango debe tener 'to' >= 'from' y no superar {MaxSlotRangeDays} días." });
+
+        var slots = await _patientPortalService.GetAvailableSlotsAsync(User.GetUserId(), doctorId, from, to);
+        if (slots == null) return NotFound();
+        return Ok(slots);
+    }
+
+    [HttpPost("appointments")]
+    public async Task<IActionResult> Book([FromBody] CreateMyAppointmentDto dto)
+    {
+        var (result, appointment) = await _patientPortalService.BookAsync(User.GetUserId(), dto);
+        return result switch
+        {
+            BookingResult.NotFound => NotFound(),
+            BookingResult.Invalid => BadRequest(new { message = "El horario está en el pasado o fuera de la disponibilidad del doctor." }),
+            BookingResult.Conflict => Conflict(new { message = "Ese horario ya fue reservado." }),
+            _ => Created($"/api/me/appointments/{appointment!.Id}", appointment)
+        };
+    }
+
+    [HttpGet("appointments")]
+    public async Task<IActionResult> GetAppointments()
+    {
+        var appointments = await _patientPortalService.GetMyAppointmentsAsync(User.GetUserId());
+        return Ok(appointments);
+    }
+
+    [HttpPut("appointments/{id:int}/cancel")]
+    public async Task<IActionResult> CancelAppointment(int id)
+    {
+        var result = await _patientPortalService.CancelMyAppointmentAsync(id, User.GetUserId());
+        return result switch
+        {
+            UpdateResult.NotFound => NotFound(),
+            UpdateResult.Conflict => Conflict(new { message = "El turno ya pasó o ya está cancelado." }),
+            _ => NoContent()
+        };
+    }
+
+    private const int MaxSlotRangeDays = 31;
 }

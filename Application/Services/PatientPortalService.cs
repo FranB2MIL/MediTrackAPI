@@ -1,8 +1,12 @@
+using System.Globalization;
+using Application.Common;
+using Application.DTOs.Appointment;
 using Application.DTOs.Consultation;
 using Application.DTOs.Doctor;
 using Application.DTOs.Patient;
 using Application.Interfaces;
 using Domain.Entities;
+using Domain.Entities.Enums;
 using Domain.Interfaces;
 
 namespace Application.Services;
@@ -12,12 +16,16 @@ public class PatientPortalService : IPatientPortalService
     private readonly IConsultationRepository _consultationRepository;
     private readonly IDoctorRepository _doctorRepository;
     private readonly IPatientRepository _patientRepository;
+    private readonly IAppointmentRepository _appointmentRepository;
+    private readonly IAvailabilityRepository _availabilityRepository;
 
-    public PatientPortalService(IConsultationRepository consultationRepository, IDoctorRepository doctorRepository, IPatientRepository patientRepository)
+    public PatientPortalService(IConsultationRepository consultationRepository, IDoctorRepository doctorRepository, IPatientRepository patientRepository, IAppointmentRepository appointmentRepository, IAvailabilityRepository availabilityRepository)
     {
         _consultationRepository = consultationRepository;
         _doctorRepository = doctorRepository;
         _patientRepository = patientRepository;
+        _appointmentRepository = appointmentRepository;
+        _availabilityRepository = availabilityRepository;
     }
 
     public async Task<IEnumerable<PatientConsultationDto>> GetConsultationsAsync(int patientId, int? doctorId)
@@ -52,6 +60,76 @@ public class PatientPortalService : IPatientPortalService
 
         await _patientRepository.UpdateAsync(patient);
         return MapToProfileDto(patient);
+    }
+
+    public async Task<IEnumerable<AvailableSlotDto>?> GetAvailableSlotsAsync(int patientId, int doctorId, DateTime from, DateTime to)
+    {
+        if (!await _patientRepository.IsLinkedAsync(doctorId, patientId)) return null;
+
+        var now = ArgentinaTime.Now();
+        var start = from.Date < now.Date ? now.Date : from.Date;
+        var end = to.Date;
+        if (start > end) return Enumerable.Empty<AvailableSlotDto>();
+
+        var availabilities = await _availabilityRepository.GetByDoctorIdAsync(doctorId);
+        var taken = (await _appointmentRepository.GetActiveByDoctorAndRangeAsync(doctorId, start, end))
+            .Select(a => (a.Date.Date, a.StartTime))
+            .ToHashSet();
+
+        return SlotGenerator.Generate(availabilities, start, end)
+            .Where(s => !taken.Contains((s.Date, s.StartTime)))
+            .Where(s => s.Date + s.StartTime.ToTimeSpan() > now)
+            .Select(MapToSlotDto);
+    }
+
+    public async Task<(BookingResult Result, MyAppointmentDto? Appointment)> BookAsync(int patientId, CreateMyAppointmentDto dto)
+    {
+        var doctorId = dto.DoctorId!.Value;
+        if (!await _patientRepository.IsLinkedAsync(doctorId, patientId)) return (BookingResult.NotFound, null);
+
+        if (!TimeOnly.TryParse(dto.StartTime, CultureInfo.InvariantCulture, out var startTime))
+            return (BookingResult.Invalid, null);
+
+        var date = dto.Date!.Value.Date;
+        if (date + startTime.ToTimeSpan() <= ArgentinaTime.Now()) return (BookingResult.Invalid, null);
+
+        var availabilities = await _availabilityRepository.GetByDoctorIdAsync(doctorId);
+        var slot = SlotGenerator.FindSlot(availabilities, date, startTime);
+        if (slot == null) return (BookingResult.Invalid, null);
+
+        var appointment = new Appointment
+        {
+            Date = slot.Date,
+            StartTime = slot.StartTime,
+            Status = AppointmentStatus.Reservado,
+            AvailabilityId = slot.AvailabilityId,
+            DoctorId = doctorId,
+            PatientId = patientId
+        };
+        // Sin chequeo previo de "tomado": el índice único es la fuente de verdad ante reservas simultáneas.
+        if (!await _appointmentRepository.TryAddAsync(appointment)) return (BookingResult.Conflict, null);
+
+        var created = await _appointmentRepository.GetByIdAndPatientIdAsync(appointment.Id, patientId);
+        return (BookingResult.Success, MapToMyAppointmentDto(created!));
+    }
+
+    public async Task<IEnumerable<MyAppointmentDto>> GetMyAppointmentsAsync(int patientId)
+    {
+        var appointments = await _appointmentRepository.GetByPatientIdAsync(patientId);
+        return appointments.Select(MapToMyAppointmentDto);
+    }
+
+    public async Task<UpdateResult> CancelMyAppointmentAsync(int id, int patientId)
+    {
+        var appointment = await _appointmentRepository.GetByIdAndPatientIdAsync(id, patientId);
+        if (appointment == null) return UpdateResult.NotFound;
+
+        var isPast = appointment.Date + appointment.StartTime.ToTimeSpan() <= ArgentinaTime.Now();
+        if (appointment.Status == AppointmentStatus.Cancelado || isPast) return UpdateResult.Conflict;
+
+        appointment.Status = AppointmentStatus.Cancelado;
+        await _appointmentRepository.UpdateAsync(appointment);
+        return UpdateResult.Success;
     }
 
     private static PatientConsultationDto MapToConsultationDto(Consultation consultation) => new PatientConsultationDto
@@ -91,5 +169,25 @@ public class PatientPortalService : IPatientPortalService
         InsuranceNumber = patient.InsuranceNumber,
         PhoneNumber = patient.PhoneNumber,
         Email = patient.Email
+    };
+
+    private static AvailableSlotDto MapToSlotDto(Slot slot) => new AvailableSlotDto
+    {
+        Date = slot.Date.ToString("yyyy-MM-dd"),
+        StartTime = slot.StartTime.ToString("HH:mm"),
+        EndTime = slot.EndTime.ToString("HH:mm"),
+        AvailabilityId = slot.AvailabilityId
+    };
+
+    private static MyAppointmentDto MapToMyAppointmentDto(Appointment appointment) => new MyAppointmentDto
+    {
+        Id = appointment.Id,
+        Date = appointment.Date.ToString("yyyy-MM-dd"),
+        StartTime = appointment.StartTime.ToString("HH:mm"),
+        EndTime = appointment.StartTime.AddMinutes(appointment.Availability.AppointmentDuration).ToString("HH:mm"),
+        Status = appointment.Status.ToString(),
+        DoctorId = appointment.DoctorId,
+        DoctorFirstName = appointment.Doctor.FirstName,
+        DoctorLastName = appointment.Doctor.LastName
     };
 }
