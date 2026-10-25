@@ -11,5 +11,6 @@ namespace Domain.Interfaces
         Task<IEnumerable<Patient>> GetAvailableForDoctorAsync(int doctorId);
         Task<bool> IsLinkedAsync(int doctorId, int patientId);
         Task<bool> RemoveDoctorPatientAsync(int doctorId, int patientId);
+        Task<IEnumerable<Patient>> GetWithDoctorsAsync();
     }
 }
