@@ -57,5 +57,16 @@ namespace Infrastructure.Repositories
                 .ExecuteDeleteAsync();
             return deleted > 0;
         }
+
+        public async Task<IEnumerable<Patient>> GetWithDoctorsAsync()
+        {
+            return await _dbSet
+                .Include(p => p.DoctorPatients)
+                    .ThenInclude(dp => dp.Doctor)
+                .Where(p => p.Email != "")
+                .OrderBy(p => p.LastName)
+                .ThenBy(p => p.FirstName)
+                .ToListAsync();
+        }
     }
 }
