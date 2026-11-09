@@ -80,7 +80,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // el puerto de tu Vite dev server
+        policy.WithOrigins("http://localhost:5173") 
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -102,12 +102,6 @@ using (var scope = app.Services.CreateScope())
     var email = app.Configuration["SeedAdmin:Email"];
     var password = app.Configuration["SeedAdmin:Password"];
 
-    // 1. Si email o password están vacíos, no hacer nada.
-
-    // 2. Si ya existe algún Admin (AnyAsync), no hacer nada.
-
-    // 3. Si no existe: crear un new Admin con Email, FirstName, LastName
-    //    y Password HASHEADA con passwordHasher, y guardarlo con adminRepository.AddAsync(...)
 
     if (!string.IsNullOrWhiteSpace(email) &&
         !string.IsNullOrWhiteSpace(password) &&
@@ -118,7 +112,7 @@ using (var scope = app.Services.CreateScope())
             Email = email,
             FirstName = "Admin",
             LastName = "MediTrack",
-            Password = passwordHasher.Hash(password)   // verificá el nombre del método
+            Password = passwordHasher.Hash(password)  
         };
 
         await adminRepository.AddAsync(admin);
