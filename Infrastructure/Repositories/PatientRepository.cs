@@ -13,10 +13,10 @@ namespace Infrastructure.Repositories
 
         public async Task<IEnumerable<Patient>> GetByDoctorIdAsync(int doctorId)
         {
-            return await _context.DoctorPatients
-                .Where(dp => dp.DoctorId == doctorId)
-                .Select(dp => dp.Patient)
-                .ToListAsync();
+            return await _dbSet
+                        .Include(p => p.User)
+                        .Where(p => p.DoctorPatients.Any(dp => dp.DoctorId == doctorId))
+                        .ToListAsync();
         }
 
         public async Task<Patient?> GetByDniAsync(string dni)
@@ -24,10 +24,6 @@ namespace Infrastructure.Repositories
             return await _dbSet.FirstOrDefaultAsync(p => p.DNI == dni);
         }
 
-        public async Task<Patient?> GetByEmailAsync(string email)
-        {
-            return await _dbSet.FirstOrDefaultAsync(p => p.Email == email);
-        }
 
         public async Task AddDoctorPatientAsync(DoctorPatient doctorPatient)
         {
@@ -38,9 +34,11 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Patient>> GetAvailableForDoctorAsync(int doctorId)
         {
             return await _dbSet
-                .Where(p => p.Email != "" && !p.DoctorPatients.Any(dp => dp.DoctorId == doctorId))
-                .OrderBy(p => p.LastName)
-                .ThenBy(p => p.FirstName)
+                .Include(p => p.User)
+                .Where(p => !p.DoctorPatients.Any(dp => dp.DoctorId == doctorId)          // no vinculados todavía
+                        && (p.User.Doctor == null || p.User.Doctor.Id != doctorId))      // y que no sea yo
+                .OrderBy(p => p.User.LastName)
+                .ThenBy(p => p.User.FirstName)
                 .ToListAsync();
         }
 
@@ -61,11 +59,12 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Patient>> GetWithDoctorsAsync()
         {
             return await _dbSet
+                .Include(p => p.User)
                 .Include(p => p.DoctorPatients)
-                    .ThenInclude(dp => dp.Doctor)
-                .Where(p => p.Email != "")
-                .OrderBy(p => p.LastName)
-                .ThenBy(p => p.FirstName)
+                .ThenInclude(dp => dp.Doctor)
+                .ThenInclude(d => d.User)
+                .OrderBy(p => p.User.LastName)
+                .ThenBy(p => p.User.FirstName)
                 .ToListAsync();
         }
     }

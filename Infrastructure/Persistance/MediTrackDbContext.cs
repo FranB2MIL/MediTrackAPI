@@ -7,6 +7,7 @@ public class MediTrackDbContext : DbContext
 {
     public MediTrackDbContext(DbContextOptions<MediTrackDbContext> options) : base(options) { }
 
+    public DbSet<User> Users { get; set; }
     public DbSet<Doctor> Doctors { get; set; }
     public DbSet<Patient> Patients { get; set; }
     public DbSet<DoctorPatient> DoctorPatients { get; set; }
@@ -19,6 +20,26 @@ public class MediTrackDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<User>(entity =>
+    {
+        entity.HasIndex(u => u.Email).IsUnique();
+        entity.Ignore(u => u.Roles);
+
+        entity.HasOne(u => u.Doctor)
+            .WithOne(d => d.User)
+            .HasForeignKey<Doctor>(d => d.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(u => u.Patient)
+            .WithOne(p => p.User)
+            .HasForeignKey<Patient>(p => p.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(u => u.Admin)
+            .WithOne(a => a.User)
+            .HasForeignKey<Admin>(a => a.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+    });
         modelBuilder.Entity<DoctorPatient>()
             .HasKey(dp => new { dp.DoctorId, dp.PatientId });
 
@@ -29,10 +50,11 @@ public class MediTrackDbContext : DbContext
 
         modelBuilder.Entity<Measurement>(entity =>
         {
-            entity.Property(m => m.Weight).HasColumnType("REAL");
+            entity.Property(m => m.Weight).HasColumnType("REAL"); 
             entity.Property(m => m.Height).HasColumnType("REAL");
             entity.Property(m => m.Size).HasColumnType("REAL");
             entity.Property(m => m.IMC).HasColumnType("REAL");
+            // HasColumnType("REAL") y el filtro "\"Status\" <> 2" son sintaxis de SQLite. Si van a Azure SQL (SQL Server), el filtro se escribe [Status] <> 2 y REAL es otro tipo
         });
 
         // Un solo turno activo por doctor y horario; los cancelados no cuentan. 2 = AppointmentStatus.Cancelado

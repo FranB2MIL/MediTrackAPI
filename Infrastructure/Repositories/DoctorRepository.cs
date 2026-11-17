@@ -11,18 +11,15 @@ namespace Infrastructure.Repositories
         {
         }
 
-        public async Task<Doctor?> GetByMailAsync(string email)
-        {
-            return await _dbSet.FirstOrDefaultAsync(m => m.Email == email);
-        }
+        
 
         public async Task<IEnumerable<Doctor>> GetByPatientIdAsync(int patientId)
         {
-            return await _context.DoctorPatients
-                .Where(dp => dp.PatientId == patientId)
-                .Select(dp => dp.Doctor)
-                .OrderBy(d => d.LastName)
-                .ThenBy(d => d.FirstName)
+            return await _dbSet
+                .Include(d => d.User)
+                .Where(d => d.DoctorPatients.Any(dp => dp.PatientId == patientId))
+                .OrderBy(d => d.User.LastName)
+                .ThenBy(d => d.User.FirstName)
                 .ToListAsync();
         }
     }
