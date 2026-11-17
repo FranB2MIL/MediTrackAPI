@@ -51,8 +51,8 @@ public class PatientPortalService : IPatientPortalService
         var patient = await _patientRepository.GetByIdAsync(patientId);
         if (patient == null) return null;
 
-        patient.FirstName = dto.FirstName;
-        patient.LastName = dto.LastName;
+        patient.User.FirstName = dto.FirstName;
+        patient.User.LastName = dto.LastName;
         patient.DateOfBirth = dto.DateOfBirth!.Value;
         patient.HealthInsurance = dto.HealthInsurance;
         patient.InsuranceNumber = dto.InsuranceNumber;
@@ -147,28 +147,28 @@ public class PatientPortalService : IPatientPortalService
             IMC = consultation.Measurement.IMC
         },
         DoctorId = consultation.DoctorId,
-        DoctorFirstName = consultation.Doctor.FirstName,
-        DoctorLastName = consultation.Doctor.LastName
+        DoctorFirstName = consultation.Doctor.User.FirstName,
+        DoctorLastName = consultation.Doctor.User.LastName
     };
 
     private static DoctorSummaryDto MapToDoctorSummaryDto(Doctor doctor) => new DoctorSummaryDto
     {
         Id = doctor.Id,
-        FirstName = doctor.FirstName,
-        LastName = doctor.LastName
+        FirstName = doctor.User.FirstName,
+        LastName = doctor.User.LastName
     };
 
     private static PatientProfileDto MapToProfileDto(Patient patient) => new PatientProfileDto
     {
         Id = patient.Id,
-        FirstName = patient.FirstName,
-        LastName = patient.LastName,
+        FirstName = patient.User.FirstName,
+        LastName = patient.User.LastName,
         DateOfBirth = patient.DateOfBirth,
         DNI = patient.DNI,
         HealthInsurance = patient.HealthInsurance,
         InsuranceNumber = patient.InsuranceNumber,
         PhoneNumber = patient.PhoneNumber,
-        Email = patient.Email
+        Email = patient.User.Email
     };
 
     private static AvailableSlotDto MapToSlotDto(Slot slot) => new AvailableSlotDto
@@ -187,7 +187,7 @@ public class PatientPortalService : IPatientPortalService
         EndTime = appointment.StartTime.AddMinutes(appointment.Availability.AppointmentDuration).ToString("HH:mm"),
         Status = appointment.Status.ToString(),
         DoctorId = appointment.DoctorId,
-        DoctorFirstName = appointment.Doctor.FirstName,
-        DoctorLastName = appointment.Doctor.LastName
+        DoctorFirstName = appointment.Doctor.User.FirstName,
+        DoctorLastName = appointment.Doctor.User.LastName
     };
 }

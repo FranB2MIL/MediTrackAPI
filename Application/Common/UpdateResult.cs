@@ -4,5 +4,6 @@ public enum UpdateResult
 {
     Success,
     NotFound,
-    Conflict
+    Conflict,
+    Invalid
 }

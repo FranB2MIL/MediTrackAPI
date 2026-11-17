@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Domain.Entities.Enums;
+using Application.Common;
 
 namespace WebApi.Extensions;
 
@@ -7,21 +8,32 @@ public static class ClaimsPrincipalExtensions
 {
     public static int GetUserId(this ClaimsPrincipal user)
     {
-        var value = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        return int.Parse(value!);
+        return user.GetRequiredIntClaim(ClaimTypes.NameIdentifier);
     }
 
-    public static Role GetRole(this ClaimsPrincipal user)
-    {
-        var value = user.FindFirstValue(ClaimTypes.Role);
-        return Enum.Parse<Role>(value!);
-    }
 
     public static int GetDoctorId(this ClaimsPrincipal user)
     {
-        if (user.GetRole() != Role.Doctor)
-            throw new UnauthorizedAccessException("El usuario no es Doctor.");
+        return user.GetRequiredIntClaim(CustomClaims.DoctorId);
+    }
 
-        return user.GetUserId();
+    public static int GetPatientId(this ClaimsPrincipal user)
+    {
+        return user.GetRequiredIntClaim(CustomClaims.PatientId);
+    }
+
+    public static int GetAdminId(this ClaimsPrincipal user)
+    {
+        return user.GetRequiredIntClaim(CustomClaims.AdminId);
+    }
+
+    private static int GetRequiredIntClaim(this ClaimsPrincipal user, string claimType)
+    {
+        var value = user.FindFirstValue(claimType);
+
+        if (value == null)
+            throw new UnauthorizedAccessException($"El token no contiene el claim '{claimType}'.");
+
+        return int.Parse(value);
     }
 }

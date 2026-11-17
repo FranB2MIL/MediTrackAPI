@@ -24,21 +24,21 @@ public class PatientPortalController : ControllerBase
     [HttpGet("consultations")]
     public async Task<IActionResult> GetConsultations([FromQuery] int? doctorId)
     {
-        var consultations = await _patientPortalService.GetConsultationsAsync(User.GetUserId(), doctorId);
+        var consultations = await _patientPortalService.GetConsultationsAsync(User.GetPatientId(), doctorId);
         return Ok(consultations);
     }
 
     [HttpGet("doctors")]
     public async Task<IActionResult> GetDoctors()
     {
-        var doctors = await _patientPortalService.GetDoctorsAsync(User.GetUserId());
+        var doctors = await _patientPortalService.GetDoctorsAsync(User.GetPatientId());
         return Ok(doctors);
     }
 
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
-        var profile = await _patientPortalService.GetProfileAsync(User.GetUserId());
+        var profile = await _patientPortalService.GetProfileAsync(User.GetPatientId());
         if (profile == null) return NotFound();
         return Ok(profile);
     }
@@ -46,7 +46,7 @@ public class PatientPortalController : ControllerBase
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateMyProfileDto dto)
     {
-        var profile = await _patientPortalService.UpdateProfileAsync(User.GetUserId(), dto);
+        var profile = await _patientPortalService.UpdateProfileAsync(User.GetPatientId(), dto);
         if (profile == null) return NotFound();
         return Ok(profile);
     }
@@ -57,7 +57,7 @@ public class PatientPortalController : ControllerBase
         if (to.Date < from.Date || (to.Date - from.Date).TotalDays > MaxSlotRangeDays)
             return BadRequest(new { message = $"El rango debe tener 'to' >= 'from' y no superar {MaxSlotRangeDays} días." });
 
-        var slots = await _patientPortalService.GetAvailableSlotsAsync(User.GetUserId(), doctorId, from, to);
+        var slots = await _patientPortalService.GetAvailableSlotsAsync(User.GetPatientId(), doctorId, from, to);
         if (slots == null) return NotFound();
         return Ok(slots);
     }
@@ -65,7 +65,7 @@ public class PatientPortalController : ControllerBase
     [HttpPost("appointments")]
     public async Task<IActionResult> Book([FromBody] CreateMyAppointmentDto dto)
     {
-        var (result, appointment) = await _patientPortalService.BookAsync(User.GetUserId(), dto);
+        var (result, appointment) = await _patientPortalService.BookAsync(User.GetPatientId(), dto);
         return result switch
         {
             BookingResult.NotFound => NotFound(),
@@ -78,14 +78,14 @@ public class PatientPortalController : ControllerBase
     [HttpGet("appointments")]
     public async Task<IActionResult> GetAppointments()
     {
-        var appointments = await _patientPortalService.GetMyAppointmentsAsync(User.GetUserId());
+        var appointments = await _patientPortalService.GetMyAppointmentsAsync(User.GetPatientId());
         return Ok(appointments);
     }
 
     [HttpPut("appointments/{id:int}/cancel")]
     public async Task<IActionResult> CancelAppointment(int id)
     {
-        var result = await _patientPortalService.CancelMyAppointmentAsync(id, User.GetUserId());
+        var result = await _patientPortalService.CancelMyAppointmentAsync(id, User.GetPatientId());
         return result switch
         {
             UpdateResult.NotFound => NotFound(),

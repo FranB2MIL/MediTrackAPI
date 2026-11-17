@@ -48,6 +48,7 @@ public class PatientController : ControllerBase
         {
             UpdateResult.NotFound => NotFound(),
             UpdateResult.Conflict => Conflict(new { message = "El paciente ya está en tu lista." }),
+            UpdateResult.Invalid => BadRequest(new { message = "No podés agregarte como tu propio paciente." }),
             _ => NoContent()
         };
     }

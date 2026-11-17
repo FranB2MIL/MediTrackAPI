@@ -33,6 +33,7 @@ public class AdminController : ControllerBase
         {
             UpdateResult.NotFound => NotFound(),
             UpdateResult.Conflict => Conflict(new { message = "El paciente ya está asignado a ese doctor." }),
+            UpdateResult.Invalid => BadRequest(new { message = "Un doctor no puede ser asignado como su propio paciente." }),
             _ => NoContent()
         };
     }

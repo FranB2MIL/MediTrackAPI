@@ -67,5 +67,12 @@ namespace Infrastructure.Repositories
                 .ThenBy(p => p.User.FirstName)
                 .ToListAsync();
         }
+
+        public override async Task<Patient?> GetByIdAsync(int id)
+        {
+            return await _dbSet
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
     }
 }

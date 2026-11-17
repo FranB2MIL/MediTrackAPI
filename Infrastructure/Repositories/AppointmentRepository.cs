@@ -11,7 +11,7 @@ public class AppointmentRepository : BaseRepository<Appointment>, IAppointmentRe
 {
     public AppointmentRepository(MediTrackDbContext context) : base(context)
     {
-        
+
     }
 
     public async Task<IEnumerable<Appointment>> GetByDoctorAndRangeAsync(int doctorId, DateTime from, DateTime to)
@@ -19,6 +19,7 @@ public class AppointmentRepository : BaseRepository<Appointment>, IAppointmentRe
         return await _dbSet
             .Where(a => a.DoctorId == doctorId && a.Date >= from && a.Date <= to)
             .Include(a => a.Patient)
+                .ThenInclude(p => p!.User)
             .OrderBy(a => a.Date)
             .ThenBy(a => a.StartTime)
             .ToListAsync();
@@ -28,6 +29,7 @@ public class AppointmentRepository : BaseRepository<Appointment>, IAppointmentRe
     {
         return await _dbSet
             .Include(a => a.Patient)
+                .ThenInclude(p => p!.User)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
@@ -35,6 +37,7 @@ public class AppointmentRepository : BaseRepository<Appointment>, IAppointmentRe
     {
         return await _dbSet
             .Include(a => a.Patient)
+                .ThenInclude(p => p!.User)
             .FirstOrDefaultAsync(a => a.Id == id && a.DoctorId == doctorId);
     }
 
@@ -79,6 +82,7 @@ public class AppointmentRepository : BaseRepository<Appointment>, IAppointmentRe
         return await _dbSet
             .Where(a => a.PatientId == patientId)
             .Include(a => a.Doctor)
+                .ThenInclude(d => d.User)
             .Include(a => a.Availability)
             .OrderBy(a => a.Date)
             .ThenBy(a => a.StartTime)
@@ -89,6 +93,7 @@ public class AppointmentRepository : BaseRepository<Appointment>, IAppointmentRe
     {
         return await _dbSet
             .Include(a => a.Doctor)
+                .ThenInclude(d => d.User)
             .Include(a => a.Availability)
             .FirstOrDefaultAsync(a => a.Id == id && a.PatientId == patientId);
     }

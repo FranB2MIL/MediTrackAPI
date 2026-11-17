@@ -1,89 +1,84 @@
+using Application.Common;
 using Application.DTOs.Auth;
 using Application.DTOs.Doctor;
 using Application.Interfaces;
+using Domain.Entities;
 using Domain.Interfaces;
 
 namespace Application.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly IDoctorRepository _doctorRepository;
-    private readonly IAdminRepository _adminRepository;
     private readonly IPatientRepository _patientRepository;
     private readonly IJwtService _jwtService;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IUserRepository _userRepository;
 
-    public AuthService(IDoctorRepository doctorRepository, IJwtService jwtService, IPasswordHasher passwordHasher, IAdminRepository adminRepository, IPatientRepository patientRepository)
+    public AuthService(IJwtService jwtService, IPasswordHasher passwordHasher, IPatientRepository patientRepository, IUserRepository userRepository)
     {
-        _doctorRepository = doctorRepository;
+        
         _jwtService = jwtService;
         _passwordHasher = passwordHasher;
-        _adminRepository = adminRepository;
         _patientRepository = patientRepository;
+        _userRepository = userRepository;
     }
 
 
-    public async Task<LoginResponseDto?> StaffLoginAsync(LoginRequestDto dto)
+    public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto dto)
     {
-        IAuthenticatable? user = await _adminRepository.GetAdminByEmailAsync(dto.Email);
-        user ??= await _doctorRepository.GetByMailAsync(dto.Email);
+        var email = EmailNormalizer.Normalize(dto.Email);
+        var user = await _userRepository.GetByEmailWithProfilesAsync(email);
 
         if (user == null || !_passwordHasher.Verify(dto.Password, user.Password))
         {
             return null;
         }
+        if (!user.Roles.Any())
+        {
+            return null;
+        }
+        return BuildResponse(user);
+    }
+    public async Task<LoginResponseDto?> RegisterPatientAsync(RegisterPatientDto dto)
+    {
+        var email = EmailNormalizer.Normalize(dto.Email);
+
+        if (await _userRepository.GetByEmailWithProfilesAsync(email) != null ||
+            await _patientRepository.GetByDniAsync(dto.DNI) != null)
+        {
+            return null;
+        }
+
+        var user = new User
+        {
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            Email = email,
+            Password = _passwordHasher.Hash(dto.Password),
+            Patient = new Patient
+            {
+                DateOfBirth = dto.DateOfBirth!.Value,
+                DNI = dto.DNI,
+                HealthInsurance = dto.HealthInsurance,
+                InsuranceNumber = dto.InsuranceNumber,
+                PhoneNumber = dto.PhoneNumber
+            }
+        };
+
+        await _userRepository.AddAsync(user);
+
         return BuildResponse(user);
     }
 
-    public async Task<LoginResponseDto?> PatientLoginAsync(LoginRequestDto dto)
-    {
-        var patient = await _patientRepository.GetByEmailAsync(dto.Email);
-
-        if (patient == null ||
-        string.IsNullOrEmpty(patient.Password) ||
-        !_passwordHasher.Verify(dto.Password, patient.Password))
-        {
-            return null;
-        }
-
-        return BuildResponse(patient);
-    }
-
-    public async Task<LoginResponseDto?> RegisterPatientAsync(RegisterPatientDto registerPatientDto)
-    {
-        if (await _patientRepository.GetByEmailAsync(registerPatientDto.Email) != null ||
-        await _patientRepository.GetByDniAsync(registerPatientDto.DNI) != null)
-        {
-            return null;
-        }
-
-        var patient = new Domain.Entities.Patient
-        {
-            FirstName = registerPatientDto.FirstName,
-            LastName = registerPatientDto.LastName,
-            DateOfBirth = registerPatientDto.DateOfBirth!.Value,
-            DNI = registerPatientDto.DNI,
-            HealthInsurance = registerPatientDto.HealthInsurance,
-            InsuranceNumber = registerPatientDto.InsuranceNumber,
-            Email = registerPatientDto.Email,
-            Password = _passwordHasher.Hash(registerPatientDto.Password),
-            PhoneNumber = registerPatientDto.PhoneNumber
-        };
-
-        await _patientRepository.AddAsync(patient);
-
-        return BuildResponse(patient);
-    }
-
-    private LoginResponseDto BuildResponse(IAuthenticatable user)
+    private LoginResponseDto BuildResponse(User user)
     {
         var token = _jwtService.GenerateToken(user);
         return new LoginResponseDto
         {
-            Token = token,
+            Token = _jwtService.GenerateToken(user),
             Email = user.Email,
-            FirstName = $"{user.FirstName} {user.LastName}",
-            Role = user.Role.ToString()
+            FullName = $"{user.FirstName} {user.LastName}",
+            Roles = user.Roles.Select(r => r.ToString()).ToList()
         };
     }
 }

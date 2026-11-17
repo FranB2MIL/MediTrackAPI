@@ -11,7 +11,7 @@ namespace Infrastructure.Repositories
         {
         }
 
-        
+
 
         public async Task<IEnumerable<Doctor>> GetByPatientIdAsync(int patientId)
         {
@@ -21,6 +21,22 @@ namespace Infrastructure.Repositories
                 .OrderBy(d => d.User.LastName)
                 .ThenBy(d => d.User.FirstName)
                 .ToListAsync();
+        }
+
+        public override async Task<IEnumerable<Doctor>> GetAllAsync()
+        {
+            return await _dbSet
+                .Include(d => d.User)
+                .OrderBy(d => d.User.LastName)
+                .ThenBy(d => d.User.FirstName)
+                .ToListAsync();
+        }
+
+        public override async Task<Doctor?> GetByIdAsync(int id)
+        {
+            return await _dbSet
+                .Include(d => d.User)
+                .FirstOrDefaultAsync(d => d.Id == id);
         }
     }
 }
