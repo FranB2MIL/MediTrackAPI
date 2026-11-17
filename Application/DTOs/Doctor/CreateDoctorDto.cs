@@ -17,4 +17,17 @@ public class CreateDoctorDto
     [Required]
     [MinLength(6)]
     public string Password { get; set; } = string.Empty;
+
+    // Datos del perfil de paciente (todo médico es también paciente)
+    [Required]
+    public string DNI { get; set; } = string.Empty;
+
+    [Required]
+    public DateTime? DateOfBirth { get; set; }
+
+    [Required]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    public string HealthInsurance { get; set; } = string.Empty;
+    public string InsuranceNumber { get; set; } = string.Empty;
 }

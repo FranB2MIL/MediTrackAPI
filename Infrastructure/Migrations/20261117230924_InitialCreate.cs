@@ -12,7 +12,7 @@ namespace Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Doctors",
+                name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -24,7 +24,45 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Admins",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Admins", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Admins_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Doctors",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
                     table.PrimaryKey("PK_Doctors", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Doctors_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -33,19 +71,22 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    FirstName = table.Column<string>(type: "TEXT", nullable: false),
-                    LastName = table.Column<string>(type: "TEXT", nullable: false),
+                    UserId = table.Column<int>(type: "INTEGER", nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "TEXT", nullable: false),
                     DNI = table.Column<string>(type: "TEXT", nullable: false),
                     HealthInsurance = table.Column<string>(type: "TEXT", nullable: false),
                     InsuranceNumber = table.Column<string>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    Password = table.Column<string>(type: "TEXT", nullable: false),
                     PhoneNumber = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Patients", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Patients_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -80,11 +121,18 @@ namespace Infrastructure.Migrations
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Reason = table.Column<string>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: false),
-                    PatientId = table.Column<int>(type: "INTEGER", nullable: false)
+                    PatientId = table.Column<int>(type: "INTEGER", nullable: false),
+                    DoctorId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Consultations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Consultations_Doctors_DoctorId",
+                        column: x => x.DoctorId,
+                        principalTable: "Doctors",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Consultations_Patients_PatientId",
                         column: x => x.PatientId,
@@ -179,10 +227,10 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Weight = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Height = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Size = table.Column<decimal>(type: "TEXT", nullable: false),
-                    IMC = table.Column<decimal>(type: "TEXT", nullable: false),
+                    Weight = table.Column<double>(type: "REAL", nullable: false),
+                    Height = table.Column<double>(type: "REAL", nullable: false),
+                    Size = table.Column<double>(type: "REAL", nullable: false),
+                    IMC = table.Column<double>(type: "REAL", nullable: false),
                     ConsultationId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
@@ -197,14 +245,22 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Admins_UserId",
+                table: "Admins",
+                column: "UserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Appointments_AvailabilityId",
                 table: "Appointments",
                 column: "AvailabilityId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Appointments_DoctorId",
+                name: "IX_Appointments_DoctorId_Date_StartTime",
                 table: "Appointments",
-                column: "DoctorId");
+                columns: new[] { "DoctorId", "Date", "StartTime" },
+                unique: true,
+                filter: "\"Status\" <> 2");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Appointments_PatientId",
@@ -214,6 +270,11 @@ namespace Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Availabilities_DoctorId",
                 table: "Availabilities",
+                column: "DoctorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Consultations_DoctorId",
+                table: "Consultations",
                 column: "DoctorId");
 
             migrationBuilder.CreateIndex(
@@ -227,20 +288,41 @@ namespace Infrastructure.Migrations
                 column: "PatientId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Doctors_UserId",
+                table: "Doctors",
+                column: "UserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Measurements_ConsultationId",
                 table: "Measurements",
                 column: "ConsultationId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Patients_UserId",
+                table: "Patients",
+                column: "UserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Studies_PatientId",
                 table: "Studies",
                 column: "PatientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Email",
+                table: "Users",
+                column: "Email",
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Admins");
+
             migrationBuilder.DropTable(
                 name: "Appointments");
 
@@ -264,6 +346,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Patients");
+
+            migrationBuilder.DropTable(
+                name: "Users");
         }
     }
 }

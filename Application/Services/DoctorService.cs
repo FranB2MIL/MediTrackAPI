@@ -9,86 +9,104 @@ namespace Application.Services;
 public class DoctorService : IDoctorService
 {
     private readonly IDoctorRepository _doctorRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IPatientRepository _patientRepository;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly IAdminRepository _adminRepository;
-    public DoctorService(IDoctorRepository doctorRepository, IPasswordHasher passwordHasher, IAdminRepository adminRepository)
+
+    public DoctorService(IDoctorRepository doctorRepository, IUserRepository userRepository, IPatientRepository patientRepository, IPasswordHasher passwordHasher)
     {
         _doctorRepository = doctorRepository;
+        _userRepository = userRepository;
+        _patientRepository = patientRepository;
         _passwordHasher = passwordHasher;
-        _adminRepository = adminRepository;
     }
-    
 
     public async Task<IEnumerable<DoctorDto>> GetAllAsync()
     {
         var doctors = await _doctorRepository.GetAllAsync();
-        return doctors.Select(d => new DoctorDto
-        {
-            Id = d.Id,
-            FirstName = d.FirstName,
-            LastName = d.LastName,
-            Email = d.Email
-        });
+        return doctors.Select(MapToDto);
     }
 
     public async Task<DoctorDto?> GetByIdAsync(int id)
     {
         var doctor = await _doctorRepository.GetByIdAsync(id);
-        if (doctor == null) return null;
-
-        return new DoctorDto
-        {
-            Id = doctor.Id,
-            FirstName = doctor.FirstName,
-            LastName = doctor.LastName,
-            Email = doctor.Email
-        };
+        return doctor == null ? null : MapToDto(doctor);
     }
 
-    public async Task<DoctorDto?> AddAsync(CreateDoctorDto createDoctorDto)
+    public async Task<CreateDoctorResultDto?> AddAsync(CreateDoctorDto dto)
     {
-        if (await _doctorRepository.GetByMailAsync(createDoctorDto.Email) != null || await _adminRepository.GetAdminByEmailAsync(createDoctorDto.Email) != null)
+        var email = EmailNormalizer.Normalize(dto.Email);
+        var existingUser = await _userRepository.GetByEmailWithProfilesAsync(email);
+
+        if (existingUser == null)
         {
-            return null;
+            if (await _patientRepository.GetByDniAsync(dto.DNI) != null) return null;
+
+            var user = new User
+            {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                Email = email,
+                Password = _passwordHasher.Hash(dto.Password),
+                Doctor = new Doctor(),
+                Patient = new Patient
+                {
+                    DNI = dto.DNI,
+                    DateOfBirth = dto.DateOfBirth!.Value,
+                    PhoneNumber = dto.PhoneNumber,
+                    HealthInsurance = dto.HealthInsurance,
+                    InsuranceNumber = dto.InsuranceNumber
+                }
+            };
+
+            await _userRepository.AddAsync(user);
+            return MapToCreateResult(user, linkedToExistingAccount: false);
         }
-        var doctor = new Doctor
-        {
-            FirstName = createDoctorDto.FirstName,
-            LastName = createDoctorDto.LastName,
-            Email = createDoctorDto.Email,
-            Password = _passwordHasher.Hash(createDoctorDto.Password)
-        };
-        await _doctorRepository.AddAsync(doctor);
-        return new DoctorDto
-        {
-            Id = doctor.Id,
-            FirstName = doctor.FirstName,
-            LastName = doctor.LastName,
-            Email = doctor.Email
-        };
+
+        // El mail ya pertenece a alguien: solo se vincula si es un paciente que todavía no es médico
+        if (existingUser.Doctor != null || existingUser.Admin != null) return null;
+
+        existingUser.Doctor = new Doctor();
+        await _userRepository.UpdateAsync(existingUser);
+        return MapToCreateResult(existingUser, linkedToExistingAccount: true);
     }
 
-    public async Task<UpdateResult> UpdateAsync(int id, UpdateDoctorDto updateDoctorDto)
+    public async Task<UpdateResult> UpdateAsync(int id, UpdateDoctorDto dto)
     {
         var doctor = await _doctorRepository.GetByIdAsync(id);
-    if (doctor == null) return UpdateResult.NotFound;
+        if (doctor == null) return UpdateResult.NotFound;
 
-    var doctorWithEmail = await _doctorRepository.GetByMailAsync(updateDoctorDto.Email);
-    var emailUsedByOtherDoctor = doctorWithEmail != null && doctorWithEmail.Id != id;
-    var emailUsedByAdmin = await _adminRepository.GetAdminByEmailAsync(updateDoctorDto.Email) != null;
+        var email = EmailNormalizer.Normalize(dto.Email);
+        var userWithEmail = await _userRepository.GetByEmailWithProfilesAsync(email);
+        if (userWithEmail != null && userWithEmail.Id != doctor.UserId) return UpdateResult.Conflict;
 
-    if (emailUsedByOtherDoctor || emailUsedByAdmin) return UpdateResult.Conflict;
+        doctor.User.FirstName = dto.FirstName;
+        doctor.User.LastName = dto.LastName;
+        doctor.User.Email = email;
 
-    doctor.FirstName = updateDoctorDto.FirstName;
-    doctor.LastName = updateDoctorDto.LastName;
-    doctor.Email = updateDoctorDto.Email;
-
-    await _doctorRepository.UpdateAsync(doctor);
-    return UpdateResult.Success;
+        await _doctorRepository.UpdateAsync(doctor);
+        return UpdateResult.Success;
     }
 
     public async Task DeleteAsync(int id)
     {
         await _doctorRepository.DeleteAsync(id);
     }
+
+    private static DoctorDto MapToDto(Doctor doctor) => new DoctorDto
+    {
+        Id = doctor.Id,
+        FirstName = doctor.User.FirstName,
+        LastName = doctor.User.LastName,
+        Email = doctor.User.Email
+    };
+
+    private static CreateDoctorResultDto MapToCreateResult(User user, bool linkedToExistingAccount) => new CreateDoctorResultDto
+    {
+        Id = user.Doctor!.Id,
+        FirstName = user.FirstName,
+        LastName = user.LastName,
+        Email = user.Email,
+        LinkedToExistingAccount = linkedToExistingAccount
+    };
 }

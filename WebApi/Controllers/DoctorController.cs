@@ -34,10 +34,10 @@ namespace WebApi.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<DoctorDto>> Create([FromBody] CreateDoctorDto dto)
+        public async Task<ActionResult<CreateDoctorResultDto>> Create([FromBody] CreateDoctorDto dto)
         {
             var result = await _doctorService.AddAsync(dto);
-            if (result == null) return Conflict(new { message = "Ya existe un doctor o admin con el mismo mail." });
+            if (result == null) return Conflict(new { message = "Ya existe un doctor o admin con ese mail, o un paciente con ese DNI." });
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
