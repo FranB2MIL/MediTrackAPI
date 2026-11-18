@@ -4,9 +4,10 @@ using System.Text;
 using Application.Interfaces;
 using Application.Settings;
 using Domain.Entities;
-using Domain.Interfaces;
+
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+
 
 namespace Infrastructure.Services;
 
@@ -19,14 +20,17 @@ public class JwtService : IJwtService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public string GenerateToken(IAuthenticatable user)
+    public string GenerateToken(User user)
     {
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role.ToString())
         };
+
+        // Con TPT la Id es la misma en todos los roles: alcanza con NameIdentifier + un claim Role por rol.
+        foreach (var role in user.Roles)
+            claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

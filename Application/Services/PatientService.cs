@@ -9,6 +9,7 @@ namespace Application.Services;
 public class PatientService : IPatientService
 {
     private readonly IPatientRepository _patientRepository;
+
     public PatientService(IPatientRepository patientRepository)
     {
         _patientRepository = patientRepository;
@@ -37,7 +38,10 @@ public class PatientService : IPatientService
     public async Task<UpdateResult> LinkAsync(int patientId, int doctorId)
     {
         var patient = await _patientRepository.GetByIdAsync(patientId);
-        if (patient == null || string.IsNullOrEmpty(patient.Email)) return UpdateResult.NotFound;
+        if (patient == null) return UpdateResult.NotFound;
+
+        // doctorId viene del token. Con TPT el médico y su perfil de paciente comparten Id.
+        if (doctorId == patientId) return UpdateResult.Invalid;
 
         if (await _patientRepository.IsLinkedAsync(doctorId, patientId)) return UpdateResult.Conflict;
 

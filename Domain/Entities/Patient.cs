@@ -1,27 +1,22 @@
 using Domain.Entities.Enums;
-using Domain.Interfaces;
 
 namespace Domain.Entities
 {
-    public class Patient : IAuthenticatable
+    public class Patient : User
     {
-        public int Id { get; set; }
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
         public string DNI { get; set; } = string.Empty;
         public string HealthInsurance { get; set; } = string.Empty;
         public string InsuranceNumber { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
-
-        public Role Role => Role.Patient;
 
         public ICollection<Consultation> Consultations { get; set; } = new List<Consultation>();
         public ICollection<Study> Studies { get; set; } = new List<Study>();
-        public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
-        public ICollection<DoctorPatient> DoctorPatients { get; set; } = new List<DoctorPatient>();
 
+        // Lado paciente de las relaciones (vía PatientId). Doctor las hereda, por eso el prefijo "My".
+        public ICollection<DoctorPatient> MyDoctors { get; set; } = new List<DoctorPatient>();
+        public ICollection<Appointment> MyAppointments { get; set; } = new List<Appointment>();
+
+        public override IEnumerable<Role> Roles => [Role.Patient];
     }
 }

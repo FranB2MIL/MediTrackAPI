@@ -38,7 +38,7 @@ public class AppointmentService : IAppointmentService
     private static DateTime ParseDate(string value)
     {
         if (!DateTime.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
-        throw new ArgumentException("Date debe tener formato yyyy-MM-dd.");
+            throw new ArgumentException("Date debe tener formato yyyy-MM-dd.");
         return date;
     }
 

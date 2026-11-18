@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
+    // Nota: con TPT, _dbSet (Patients) también devuelve médicos, materializados como Doctor.
     public class PatientRepository : BaseRepository<Patient>, IPatientRepository
     {
         public PatientRepository(MediTrackDbContext context) : base(context)
@@ -13,10 +14,9 @@ namespace Infrastructure.Repositories
 
         public async Task<IEnumerable<Patient>> GetByDoctorIdAsync(int doctorId)
         {
-            return await _context.DoctorPatients
-                .Where(dp => dp.DoctorId == doctorId)
-                .Select(dp => dp.Patient)
-                .ToListAsync();
+            return await _dbSet
+                        .Where(p => p.MyDoctors.Any(dp => dp.DoctorId == doctorId))
+                        .ToListAsync();
         }
 
         public async Task<Patient?> GetByDniAsync(string dni)
@@ -24,10 +24,6 @@ namespace Infrastructure.Repositories
             return await _dbSet.FirstOrDefaultAsync(p => p.DNI == dni);
         }
 
-        public async Task<Patient?> GetByEmailAsync(string email)
-        {
-            return await _dbSet.FirstOrDefaultAsync(p => p.Email == email);
-        }
 
         public async Task AddDoctorPatientAsync(DoctorPatient doctorPatient)
         {
@@ -38,7 +34,8 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Patient>> GetAvailableForDoctorAsync(int doctorId)
         {
             return await _dbSet
-                .Where(p => p.Email != "" && !p.DoctorPatients.Any(dp => dp.DoctorId == doctorId))
+                .Where(p => !p.MyDoctors.Any(dp => dp.DoctorId == doctorId)   // no vinculados todavía
+                        && p.Id != doctorId)                                    // y que no sea yo (misma Id en TPT)
                 .OrderBy(p => p.LastName)
                 .ThenBy(p => p.FirstName)
                 .ToListAsync();
@@ -61,9 +58,8 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Patient>> GetWithDoctorsAsync()
         {
             return await _dbSet
-                .Include(p => p.DoctorPatients)
-                    .ThenInclude(dp => dp.Doctor)
-                .Where(p => p.Email != "")
+                .Include(p => p.MyDoctors)
+                .ThenInclude(dp => dp.Doctor)
                 .OrderBy(p => p.LastName)
                 .ThenBy(p => p.FirstName)
                 .ToListAsync();

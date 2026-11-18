@@ -1,4 +1,5 @@
 using System.Text;
+using Application.Common;
 using Application.Interfaces;
 using Application.Services;
 using Application.Settings;
@@ -46,6 +47,7 @@ builder.Services.AddScoped<IConsultationRepository, ConsultationRepository>();
 builder.Services.AddScoped<IAvailabilityRepository, AvailabilityRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
@@ -109,10 +111,10 @@ using (var scope = app.Services.CreateScope())
     {
         var admin = new Admin
         {
-            Email = email,
             FirstName = "Admin",
             LastName = "MediTrack",
-            Password = passwordHasher.Hash(password)  
+            Email = EmailNormalizer.Normalize(email),
+            Password = passwordHasher.Hash(password)
         };
 
         await adminRepository.AddAsync(admin);

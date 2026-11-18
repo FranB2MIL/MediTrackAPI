@@ -30,7 +30,10 @@ public class AdminService : IAdminService
         if (doctor == null) return UpdateResult.NotFound;
 
         var patient = await _patientRepository.GetByIdAsync(patientId);
-        if (patient == null || string.IsNullOrEmpty(patient.Email)) return UpdateResult.NotFound;
+        if (patient == null) return UpdateResult.NotFound;
+
+        // Con TPT el médico y su perfil de paciente comparten Id.
+        if (doctorId == patientId) return UpdateResult.Invalid;
 
         if (await _patientRepository.IsLinkedAsync(doctorId, patientId)) return UpdateResult.Conflict;
 
@@ -58,7 +61,7 @@ public class AdminService : IAdminService
         PhoneNumber = patient.PhoneNumber,
         HealthInsurance = patient.HealthInsurance,
         InsuranceNumber = patient.InsuranceNumber,
-        Doctors = patient.DoctorPatients
+        Doctors = patient.MyDoctors
             .Select(dp => dp.Doctor)
             .OrderBy(d => d.LastName)
             .ThenBy(d => d.FirstName)

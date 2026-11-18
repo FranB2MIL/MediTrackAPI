@@ -11,7 +11,7 @@ public class AppointmentRepository : BaseRepository<Appointment>, IAppointmentRe
 {
     public AppointmentRepository(MediTrackDbContext context) : base(context)
     {
-        
+
     }
 
     public async Task<IEnumerable<Appointment>> GetByDoctorAndRangeAsync(int doctorId, DateTime from, DateTime to)
