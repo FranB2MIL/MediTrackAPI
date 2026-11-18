@@ -34,10 +34,10 @@ namespace WebApi.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<CreateDoctorResultDto>> Create([FromBody] CreateDoctorDto dto)
+        public async Task<ActionResult<DoctorDto>> Create([FromBody] CreateDoctorDto dto)
         {
             var result = await _doctorService.AddAsync(dto);
-            if (result == null) return Conflict(new { message = "Ya existe un doctor o admin con ese mail, o un paciente con ese DNI." });
+            if (result == null) return Conflict(new { message = "Ya existe una cuenta con ese mail o un paciente con ese DNI." });
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
@@ -56,8 +56,13 @@ namespace WebApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _doctorService.DeleteAsync(id);
-            return NoContent();
+            var result = await _doctorService.DeleteAsync(id);
+            return result switch
+            {
+                UpdateResult.NotFound => NotFound(),
+                UpdateResult.Conflict => Conflict(new { message = "El médico tiene datos clínicos asociados (como médico o como paciente) y no se puede eliminar." }),
+                _ => NoContent()
+            };
         }
     }
 }

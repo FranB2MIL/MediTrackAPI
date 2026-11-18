@@ -1,9 +1,9 @@
-
-
 using Domain.Entities.Enums;
 
 namespace Domain.Entities;
-public class User
+
+// Raíz de la jerarquía TPT (tabla Users). Es abstracta: toda cuenta es Admin, Patient o Doctor.
+public abstract class User
 {
     public int Id { get; set; }
     public string FirstName { get; set; } = null!;
@@ -11,19 +11,6 @@ public class User
     public string Email { get; set; } = null!;
     public string Password { get; set; } = null!;
 
-    public Doctor? Doctor { get; set; }
-    public Patient? Patient { get; set; }
-    public Admin? Admin { get; set; }
-    
-    public IEnumerable<Role> Roles
-    {
-        get
-        {
-            var roles = new List<Role>();
-            if (Admin != null) roles.Add(Role.Admin);
-            if (Doctor != null) roles.Add(Role.Doctor);
-            if (Patient != null) roles.Add(Role.Patient);
-            return roles;
-        }
-    }
+    // Cada subclase declara sus roles; el orden define la prioridad de portal (Admin, Doctor, Patient).
+    public abstract IEnumerable<Role> Roles { get; }
 }

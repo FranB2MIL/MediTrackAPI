@@ -1,11 +1,8 @@
+using Domain.Entities.Enums;
 
 namespace Domain.Entities;
 
-public class Admin 
+public class Admin : User
 {
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public User User { get; set; } = null!;
-
-    
+    public override IEnumerable<Role> Roles => [Role.Admin];
 }

@@ -1,4 +1,5 @@
 using System.Text;
+using Application.Common;
 using Application.Interfaces;
 using Application.Services;
 using Application.Settings;
@@ -110,13 +111,10 @@ using (var scope = app.Services.CreateScope())
     {
         var admin = new Admin
         {
-           User = new User
-           {
-                Email = email.Trim().ToLowerInvariant(),
-                FirstName = "Admin",
-                LastName = "MediTrack",
-                Password = passwordHasher.Hash(password)
-           }
+            FirstName = "Admin",
+            LastName = "MediTrack",
+            Email = EmailNormalizer.Normalize(email),
+            Password = passwordHasher.Hash(password)
         };
 
         await adminRepository.AddAsync(admin);

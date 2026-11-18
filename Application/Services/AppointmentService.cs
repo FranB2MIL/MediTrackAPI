@@ -32,7 +32,7 @@ public class AppointmentService : IAppointmentService
         PatientId = appointment.PatientId,
         PatientName = appointment.Patient == null
             ? null
-            : $"{appointment.Patient.User.FirstName} {appointment.Patient.User.LastName}"
+            : $"{appointment.Patient.FirstName} {appointment.Patient.LastName}"
     };
 
     private static DateTime ParseDate(string value)

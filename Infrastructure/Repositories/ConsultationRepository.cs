@@ -43,7 +43,6 @@ public class ConsultationRepository : BaseRepository<Consultation>, IConsultatio
         return await query
             .Include(c => c.Measurement)
             .Include(c => c.Doctor)
-                .ThenInclude(d => d.User)
             .OrderByDescending(c => c.Date)
             .ToListAsync();
     }

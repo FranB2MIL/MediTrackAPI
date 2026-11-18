@@ -33,42 +33,29 @@ public class DoctorService : IDoctorService
         return doctor == null ? null : MapToDto(doctor);
     }
 
-    public async Task<CreateDoctorResultDto?> AddAsync(CreateDoctorDto dto)
+    public async Task<DoctorDto?> AddAsync(CreateDoctorDto dto)
     {
         var email = EmailNormalizer.Normalize(dto.Email);
-        var existingUser = await _userRepository.GetByEmailWithProfilesAsync(email);
 
-        if (existingUser == null)
+        // EF no permite cambiar el tipo de una entidad (Patient → Doctor), así que un mail ya registrado es conflicto.
+        if (await _userRepository.GetByEmailAsync(email) != null) return null;
+        if (await _patientRepository.GetByDniAsync(dto.DNI) != null) return null;
+
+        var doctor = new Doctor
         {
-            if (await _patientRepository.GetByDniAsync(dto.DNI) != null) return null;
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            Email = email,
+            Password = _passwordHasher.Hash(dto.Password),
+            DNI = dto.DNI,
+            DateOfBirth = dto.DateOfBirth!.Value,
+            PhoneNumber = dto.PhoneNumber,
+            HealthInsurance = dto.HealthInsurance,
+            InsuranceNumber = dto.InsuranceNumber
+        };
 
-            var user = new User
-            {
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                Email = email,
-                Password = _passwordHasher.Hash(dto.Password),
-                Doctor = new Doctor(),
-                Patient = new Patient
-                {
-                    DNI = dto.DNI,
-                    DateOfBirth = dto.DateOfBirth!.Value,
-                    PhoneNumber = dto.PhoneNumber,
-                    HealthInsurance = dto.HealthInsurance,
-                    InsuranceNumber = dto.InsuranceNumber
-                }
-            };
-
-            await _userRepository.AddAsync(user);
-            return MapToCreateResult(user, linkedToExistingAccount: false);
-        }
-
-        // El mail ya pertenece a alguien: solo se vincula si es un paciente que todavía no es médico
-        if (existingUser.Doctor != null || existingUser.Admin != null) return null;
-
-        existingUser.Doctor = new Doctor();
-        await _userRepository.UpdateAsync(existingUser);
-        return MapToCreateResult(existingUser, linkedToExistingAccount: true);
+        await _doctorRepository.AddAsync(doctor);
+        return MapToDto(doctor);
     }
 
     public async Task<UpdateResult> UpdateAsync(int id, UpdateDoctorDto dto)
@@ -77,36 +64,36 @@ public class DoctorService : IDoctorService
         if (doctor == null) return UpdateResult.NotFound;
 
         var email = EmailNormalizer.Normalize(dto.Email);
-        var userWithEmail = await _userRepository.GetByEmailWithProfilesAsync(email);
-        if (userWithEmail != null && userWithEmail.Id != doctor.UserId) return UpdateResult.Conflict;
+        var userWithEmail = await _userRepository.GetByEmailAsync(email);
+        if (userWithEmail != null && userWithEmail.Id != doctor.Id) return UpdateResult.Conflict;
 
-        doctor.User.FirstName = dto.FirstName;
-        doctor.User.LastName = dto.LastName;
-        doctor.User.Email = email;
+        doctor.FirstName = dto.FirstName;
+        doctor.LastName = dto.LastName;
+        doctor.Email = email;
 
         await _doctorRepository.UpdateAsync(doctor);
         return UpdateResult.Success;
     }
 
-    public async Task DeleteAsync(int id)
+    // TODO: reemplazar por soft delete en una etapa posterior.
+    // Con TPT no se puede quitar solo el rol de médico: borrar el Doctor borra la cuenta entera (Doctors, Patients, Users).
+    // Por eso solo se permite si no tiene ningún dato clínico, ni como médico ni como paciente.
+    public async Task<UpdateResult> DeleteAsync(int id)
     {
+        var doctor = await _doctorRepository.GetByIdAsync(id);
+        if (doctor == null) return UpdateResult.NotFound;
+
+        if (await _doctorRepository.HasClinicalDataAsync(id)) return UpdateResult.Conflict;
+
         await _doctorRepository.DeleteAsync(id);
+        return UpdateResult.Success;
     }
 
     private static DoctorDto MapToDto(Doctor doctor) => new DoctorDto
     {
         Id = doctor.Id,
-        FirstName = doctor.User.FirstName,
-        LastName = doctor.User.LastName,
-        Email = doctor.User.Email
-    };
-
-    private static CreateDoctorResultDto MapToCreateResult(User user, bool linkedToExistingAccount) => new CreateDoctorResultDto
-    {
-        Id = user.Doctor!.Id,
-        FirstName = user.FirstName,
-        LastName = user.LastName,
-        Email = user.Email,
-        LinkedToExistingAccount = linkedToExistingAccount
+        FirstName = doctor.FirstName,
+        LastName = doctor.LastName,
+        Email = doctor.Email
     };
 }

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
+    // Nota: con TPT, _dbSet (Patients) también devuelve médicos, materializados como Doctor.
     public class PatientRepository : BaseRepository<Patient>, IPatientRepository
     {
         public PatientRepository(MediTrackDbContext context) : base(context)
@@ -14,8 +15,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Patient>> GetByDoctorIdAsync(int doctorId)
         {
             return await _dbSet
-                        .Include(p => p.User)
-                        .Where(p => p.DoctorPatients.Any(dp => dp.DoctorId == doctorId))
+                        .Where(p => p.MyDoctors.Any(dp => dp.DoctorId == doctorId))
                         .ToListAsync();
         }
 
@@ -34,11 +34,10 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Patient>> GetAvailableForDoctorAsync(int doctorId)
         {
             return await _dbSet
-                .Include(p => p.User)
-                .Where(p => !p.DoctorPatients.Any(dp => dp.DoctorId == doctorId)          // no vinculados todavía
-                        && (p.User.Doctor == null || p.User.Doctor.Id != doctorId))      // y que no sea yo
-                .OrderBy(p => p.User.LastName)
-                .ThenBy(p => p.User.FirstName)
+                .Where(p => !p.MyDoctors.Any(dp => dp.DoctorId == doctorId)   // no vinculados todavía
+                        && p.Id != doctorId)                                    // y que no sea yo (misma Id en TPT)
+                .OrderBy(p => p.LastName)
+                .ThenBy(p => p.FirstName)
                 .ToListAsync();
         }
 
@@ -59,20 +58,11 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Patient>> GetWithDoctorsAsync()
         {
             return await _dbSet
-                .Include(p => p.User)
-                .Include(p => p.DoctorPatients)
+                .Include(p => p.MyDoctors)
                 .ThenInclude(dp => dp.Doctor)
-                .ThenInclude(d => d.User)
-                .OrderBy(p => p.User.LastName)
-                .ThenBy(p => p.User.FirstName)
+                .OrderBy(p => p.LastName)
+                .ThenBy(p => p.FirstName)
                 .ToListAsync();
-        }
-
-        public override async Task<Patient?> GetByIdAsync(int id)
-        {
-            return await _dbSet
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(p => p.Id == id);
         }
     }
 }

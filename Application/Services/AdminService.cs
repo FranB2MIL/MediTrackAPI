@@ -32,7 +32,8 @@ public class AdminService : IAdminService
         var patient = await _patientRepository.GetByIdAsync(patientId);
         if (patient == null) return UpdateResult.NotFound;
 
-        if (doctor.UserId == patient.UserId) return UpdateResult.Invalid;
+        // Con TPT el médico y su perfil de paciente comparten Id.
+        if (doctorId == patientId) return UpdateResult.Invalid;
 
         if (await _patientRepository.IsLinkedAsync(doctorId, patientId)) return UpdateResult.Conflict;
 
@@ -52,18 +53,18 @@ public class AdminService : IAdminService
     private static AdminPatientDto MapToDto(Patient patient) => new AdminPatientDto
     {
         Id = patient.Id,
-        FirstName = patient.User.FirstName,
-        LastName = patient.User.LastName,
+        FirstName = patient.FirstName,
+        LastName = patient.LastName,
         DNI = patient.DNI,
         DateOfBirth = patient.DateOfBirth,
-        Email = patient.User.Email,
+        Email = patient.Email,
         PhoneNumber = patient.PhoneNumber,
         HealthInsurance = patient.HealthInsurance,
         InsuranceNumber = patient.InsuranceNumber,
-        Doctors = patient.DoctorPatients
+        Doctors = patient.MyDoctors
             .Select(dp => dp.Doctor)
-            .OrderBy(d => d.User.LastName)
-            .ThenBy(d => d.User.FirstName)
+            .OrderBy(d => d.LastName)
+            .ThenBy(d => d.FirstName)
             .Select(MapToDoctorSummaryDto)
             .ToList()
     };
@@ -71,7 +72,7 @@ public class AdminService : IAdminService
     private static DoctorSummaryDto MapToDoctorSummaryDto(Doctor doctor) => new DoctorSummaryDto
     {
         Id = doctor.Id,
-        FirstName = doctor.User.FirstName,
-        LastName = doctor.User.LastName
+        FirstName = doctor.FirstName,
+        LastName = doctor.LastName
     };
 }

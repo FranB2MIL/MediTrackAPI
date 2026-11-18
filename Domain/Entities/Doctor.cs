@@ -1,12 +1,14 @@
+using Domain.Entities.Enums;
 
 namespace Domain.Entities
 {
-    public class Doctor 
+    // Todo médico es también paciente: hereda los datos y las relaciones de Patient.
+    public class Doctor : Patient
     {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public User User { get; set; } = null!;
-        public ICollection<DoctorPatient> DoctorPatients { get; set; } = new List<DoctorPatient>();
-        public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+        // Lado médico de las relaciones (vía DoctorId).
+        public ICollection<DoctorPatient> MyPatients { get; set; } = new List<DoctorPatient>();
+        public ICollection<Appointment> Schedule { get; set; } = new List<Appointment>();
+
+        public override IEnumerable<Role> Roles => [Role.Doctor, .. base.Roles];
     }
 }

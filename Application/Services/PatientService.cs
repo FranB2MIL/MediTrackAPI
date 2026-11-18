@@ -9,12 +9,10 @@ namespace Application.Services;
 public class PatientService : IPatientService
 {
     private readonly IPatientRepository _patientRepository;
-    private readonly IDoctorRepository _doctorRepository;
 
-    public PatientService(IPatientRepository patientRepository, IDoctorRepository doctorRepository)
+    public PatientService(IPatientRepository patientRepository)
     {
         _patientRepository = patientRepository;
-        _doctorRepository = doctorRepository;
     }
 
     public async Task<IEnumerable<PatientDto>> GetAllAsync(int doctorId)
@@ -42,10 +40,8 @@ public class PatientService : IPatientService
         var patient = await _patientRepository.GetByIdAsync(patientId);
         if (patient == null) return UpdateResult.NotFound;
 
-        var doctor = await _doctorRepository.GetByIdAsync(doctorId);
-        if (doctor == null) return UpdateResult.NotFound;
-
-        if (doctor.UserId == patient.UserId) return UpdateResult.Invalid;
+        // doctorId viene del token. Con TPT el médico y su perfil de paciente comparten Id.
+        if (doctorId == patientId) return UpdateResult.Invalid;
 
         if (await _patientRepository.IsLinkedAsync(doctorId, patientId)) return UpdateResult.Conflict;
 
@@ -65,8 +61,8 @@ public class PatientService : IPatientService
     private static PatientDto MapToDto(Patient patient) => new PatientDto
     {
         Id = patient.Id,
-        FirstName = patient.User.FirstName,
-        LastName = patient.User.LastName,
+        FirstName = patient.FirstName,
+        LastName = patient.LastName,
         DateOfBirth = patient.DateOfBirth,
         DNI = patient.DNI,
         HealthInsurance = patient.HealthInsurance
@@ -75,8 +71,8 @@ public class PatientService : IPatientService
     private static PatientSummaryDto MapToSummaryDto(Patient patient) => new PatientSummaryDto
     {
         Id = patient.Id,
-        FirstName = patient.User.FirstName,
-        LastName = patient.User.LastName,
+        FirstName = patient.FirstName,
+        LastName = patient.LastName,
         DNI = patient.DNI
     };
 }

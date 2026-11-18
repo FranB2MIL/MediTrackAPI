@@ -11,12 +11,9 @@ public class UserRepository : BaseRepository<User>, IUserRepository
     {
     }
 
-    public async Task<User?> GetByEmailWithProfilesAsync(string email)
+    // TPT: EF hace LEFT JOIN a las tablas derivadas y materializa el tipo concreto (Admin, Patient o Doctor).
+    public async Task<User?> GetByEmailAsync(string email)
     {
-        return await _dbSet
-            .Include(u => u.Doctor)
-            .Include(u => u.Patient)
-            .Include(u => u.Admin)
-            .FirstOrDefaultAsync(u => u.Email == email);
+        return await _dbSet.FirstOrDefaultAsync(u => u.Email == email);
     }
 }

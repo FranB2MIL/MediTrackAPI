@@ -4,7 +4,6 @@ namespace Domain.Interfaces
 {
     public interface IUserRepository : IRepository<User>
     {
-        Task<User?> GetByEmailWithProfilesAsync(string email);
-        
+        Task<User?> GetByEmailAsync(string email);
     }
 }

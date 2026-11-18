@@ -1,6 +1,5 @@
 using Application.Common;
 using Application.DTOs.Auth;
-using Application.DTOs.Doctor;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Interfaces;
@@ -16,19 +15,18 @@ public class AuthService : IAuthService
 
     public AuthService(IJwtService jwtService, IPasswordHasher passwordHasher, IPatientRepository patientRepository, IUserRepository userRepository)
     {
-        
         _jwtService = jwtService;
         _passwordHasher = passwordHasher;
         _patientRepository = patientRepository;
         _userRepository = userRepository;
     }
 
-
     public async Task<LoginResponseDto?> LoginAsync(LoginRequestDto dto)
     {
         var email = EmailNormalizer.Normalize(dto.Email);
-        var user = await _userRepository.GetByEmailWithProfilesAsync(email);
+        var user = await _userRepository.GetByEmailAsync(email);
 
+        // Misma respuesta si el mail no existe o la contraseña es incorrecta (no revela qué mails están registrados).
         if (user == null || !_passwordHasher.Verify(dto.Password, user.Password))
         {
             return null;
@@ -39,40 +37,37 @@ public class AuthService : IAuthService
         }
         return BuildResponse(user);
     }
+
     public async Task<LoginResponseDto?> RegisterPatientAsync(RegisterPatientDto dto)
     {
         var email = EmailNormalizer.Normalize(dto.Email);
 
-        if (await _userRepository.GetByEmailWithProfilesAsync(email) != null ||
+        if (await _userRepository.GetByEmailAsync(email) != null ||
             await _patientRepository.GetByDniAsync(dto.DNI) != null)
         {
             return null;
         }
 
-        var user = new User
+        var patient = new Patient
         {
             FirstName = dto.FirstName,
             LastName = dto.LastName,
             Email = email,
             Password = _passwordHasher.Hash(dto.Password),
-            Patient = new Patient
-            {
-                DateOfBirth = dto.DateOfBirth!.Value,
-                DNI = dto.DNI,
-                HealthInsurance = dto.HealthInsurance,
-                InsuranceNumber = dto.InsuranceNumber,
-                PhoneNumber = dto.PhoneNumber
-            }
+            DateOfBirth = dto.DateOfBirth!.Value,
+            DNI = dto.DNI,
+            HealthInsurance = dto.HealthInsurance,
+            InsuranceNumber = dto.InsuranceNumber,
+            PhoneNumber = dto.PhoneNumber
         };
 
-        await _userRepository.AddAsync(user);
+        await _patientRepository.AddAsync(patient);
 
-        return BuildResponse(user);
+        return BuildResponse(patient);
     }
 
     private LoginResponseDto BuildResponse(User user)
     {
-        var token = _jwtService.GenerateToken(user);
         return new LoginResponseDto
         {
             Token = _jwtService.GenerateToken(user),
